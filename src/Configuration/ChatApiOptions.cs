@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace AiFoundryAgent.Configuration;
 
 public class ChatApiOptions

@@ -15,3 +15,6 @@ global using Microsoft.Extensions.Options;
 global using Azure;
 global using Azure.AI.Agents.Persistent;
 global using Azure.Identity;
+
+global using AiFoundryAgent.Models;
+global using AiFoundryAgent.Configuration;

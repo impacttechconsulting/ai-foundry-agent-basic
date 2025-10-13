@@ -1,6 +1,3 @@
-using Microsoft.Extensions.Options;
-using Azure.AI.Agents.Persistent;
-using Azure.Identity;
 using AiFoundryAgent.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,7 +7,7 @@ builder.Logging.AddConsole(options =>
     options.FormatterName = "simple";
 });
 
-builder.Services.AddOptions<AiFoundryAgent.Configuration.ChatApiOptions>()
+builder.Services.AddOptions<ChatApiOptions>()
     .Bind(builder.Configuration)
     .ValidateDataAnnotations()
     .ValidateOnStart();

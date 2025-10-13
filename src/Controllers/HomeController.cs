@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Mvc;
-
 namespace AiFoundryAgent.Controllers;
 
 public class HomeController : Controller

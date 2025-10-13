@@ -1,9 +1,3 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
-using Azure;
-using Azure.AI.Agents.Persistent;
-using AiFoundryAgent.Configuration;
-
 namespace AiFoundryAgent.Controllers;
 
 [ApiController]
