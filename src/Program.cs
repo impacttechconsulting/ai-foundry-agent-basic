@@ -15,10 +15,12 @@ builder.WebHost.ConfigureKestrel(serverOptions =>
     });
 });
 #endif
-
-builder.Logging.AddConsole(options =>
+builder.Logging.ClearProviders();
+builder.Logging.AddSimpleConsole(options =>
 {
-    options.FormatterName = "simple";
+    options.IncludeScopes = true;
+    options.SingleLine = true;
+    options.TimestampFormat = "HH:mm:ss ";
 });
 
 builder.Services.AddOptions<ChatApiOptions>()
@@ -59,10 +61,7 @@ if (app.Environment.IsDevelopment())
     app.UseDeveloperExceptionPage();
 }
 
-// Enable HTTPS redirection in all environments
-// In development: Uses dev certificate
-// In production: Azure App Service handles HTTPS termination and forwards internally over HTTP
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 
 app.UseStaticFiles();
 
@@ -73,19 +72,16 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.UseCors("AllowAllOrigins");
-
 app.MapControllers();
+app.Start();
 
-app.Lifetime.ApplicationStarted.Register(() =>
+var server = app.Services.GetRequiredService<IServer>();
+IServerAddressesFeature? addressFeature = server.Features.Get<IServerAddressesFeature>();
+foreach (var address in addressFeature?.Addresses ?? [])
 {
-    if (app.Environment.IsDevelopment())
-    {
-        logger.LogInformation("AI Foundry Agent running on https://localhost:5001 | Chat UI: https://localhost:5001 | API: /chat/threads & /chat/completions/{threadId}");
-    }
-    else
-    {
-        logger.LogInformation("AI Foundry Agent deployed to Azure App Service | HTTPS enabled by default | Chat UI and API endpoints available");
-    }
-});
-
-app.Run();
+    var uri = new Uri(address);
+    Console.WriteLine($"Kestrel is listening on address: {address}");
+    Console.WriteLine($"Kestrel is listening on port: {uri.Port}");
+}
+app.MapGet("/", () => $"Hi there, Kestrel is running on\n\n{string.Join("\n", addressFeature?.Addresses ?? [])}");
+app.WaitForShutdown();
