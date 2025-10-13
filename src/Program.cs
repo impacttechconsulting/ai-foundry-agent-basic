@@ -31,8 +31,8 @@ builder.Services.AddOptions<ChatApiOptions>()
 builder.Services.AddSingleton((provider) =>
 {
     var config = provider.GetRequiredService<IOptions<ChatApiOptions>>().Value;
+    Console.WriteLine($"AIProjectEndpoint: {config.AIProjectEndpoint}");
     PersistentAgentsClient client = new(config.AIProjectEndpoint, new DefaultAzureCredential());
-
     return client;
 });
 
@@ -80,8 +80,8 @@ IServerAddressesFeature? addressFeature = server.Features.Get<IServerAddressesFe
 foreach (var address in addressFeature?.Addresses ?? [])
 {
     var uri = new Uri(address);
-    Console.WriteLine($"Kestrel is listening on address: {address}");
-    Console.WriteLine($"Kestrel is listening on port: {uri.Port}");
+    logger.LogInformation($"Kestrel is listening on address: {address}");
+    logger.LogInformation($"Kestrel is listening on port: {uri.Port}");
 }
 app.MapGet("/", () => $"Hi there, Kestrel is running on\n\n{string.Join("\n", addressFeature?.Addresses ?? [])}");
 app.WaitForShutdown();
