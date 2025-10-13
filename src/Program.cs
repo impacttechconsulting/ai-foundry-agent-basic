@@ -1,4 +1,5 @@
 using AiFoundryAgent.Configuration;
+using Microsoft.AspNetCore.StaticFiles;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -63,9 +64,13 @@ if (app.Environment.IsDevelopment())
 
 // app.UseHttpsRedirection();
 
+// Serve static files (CSS, JS, images) from wwwroot
 app.UseStaticFiles();
 
 app.UseRouting();
+
+// Catch-all route to serve React app for client-side routing
+app.MapFallbackToFile("/{*path:nonfile}", "index.html");
 
 app.MapControllerRoute(
     name: "default",
@@ -83,5 +88,5 @@ foreach (var address in addressFeature?.Addresses ?? [])
     logger.LogInformation($"Kestrel is listening on address: {address}");
     logger.LogInformation($"Kestrel is listening on port: {uri.Port}");
 }
-app.MapGet("/", () => $"Hi there, Kestrel is running on\n\n{string.Join("\n", addressFeature?.Addresses ?? [])}");
+// app.MapGet("/", () => $"Hi there, Kestrel is running on\n\n{string.Join("\n", addressFeature?.Addresses ?? [])}");
 app.WaitForShutdown();
