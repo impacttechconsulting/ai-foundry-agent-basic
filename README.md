@@ -1,6 +1,6 @@
 # AI Foundry Agent Sample Application
 
-This repository contains a sample .NET 8 application demonstrating how to build an AI agent using Azure AI Foundry capabilities. The sample showcases best practices for developing intelligent agents that can interact with users and perform various tasks.
+This repository contains a sample .NET 10 application demonstrating how to build an AI agent using Azure AI Foundry capabilities. The sample showcases best practices for developing intelligent agents that can interact with users and perform various tasks.
 
 ## Overview
 
@@ -20,7 +20,16 @@ ai-foundry-agent-basic/
 │   ├── Program.cs
 │   ├── GlobalUsings.cs
 │   ├── Controllers/
-│   │   └── AgentController.cs
+│   │   ├── ChatController.cs
+│   │   ├── HomeController.cs
+│   │   └── AgentsController.cs
+│   ├── Models/
+│   │   └── AgentModels.cs
+│   ├── Configuration/
+│   │   └── ChatApiOptions.cs
+│   ├── Views/
+│   │   └── Home/
+│   │       └── Index.cshtml
 │   └── appsettings.json
 ├── test/                    # Unit and integration tests
 │   ├── AiFoundryAgent.Tests.csproj
@@ -40,6 +49,58 @@ ai-foundry-agent-basic/
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
 - [Azure CLI](https://docs.microsoft.com/cli/azure/install-azure-cli)
 - Azure subscription with access to Azure AI Foundry services
+
+## Azure Resources Required
+
+To deploy this application to Azure, you will need to create the following resources:
+
+1. **Azure App Service** (or App Service Plan)
+   - To host your .NET application
+   - Provides web hosting with auto-scaling capabilities
+
+2. **Azure AI Foundry Resources**
+   - **AI Project**: Contains and manages your AI agents
+   - **AI Agent(s)**: The actual intelligent agents your application will interact with
+
+3. **[Optional] Azure Key Vault**
+   - To securely store your AI service keys and configuration
+   - Recommended for production deployments
+
+4. **[Optional] Azure Application Insights**
+   - For monitoring your application performance and usage
+   - Provides logs, metrics, and diagnostic capabilities
+
+### Creating Required Azure Resources
+
+#### Using Azure CLI:
+
+```bash
+# Variables
+RESOURCE_GROUP="your-resource-group-name"
+LOCATION="East US"
+APP_SERVICE_PLAN="your-app-service-plan"
+WEB_APP_NAME="your-web-app-name"
+AI_PROJECT_NAME="your-ai-project-name"
+
+# Create Resource Group
+az group create --name $RESOURCE_GROUP --location $LOCATION
+
+# Create App Service Plan
+az appservice plan create --name $APP_SERVICE_PLAN --resource-group $RESOURCE_GROUP --sku B1 --is-linux
+
+# Create Web App
+az webapp create --resource-group $RESOURCE_GROUP --plan $APP_SERVICE_PLAN --name $WEB_APP_NAME --runtime "DOTNETCORE|10.0"
+
+# Configure your AI Foundry resources via Azure portal or Azure CLI
+# You'll need to set up an AI Project and Agent in Azure AI Foundry
+```
+
+#### Required Configuration Values:
+
+After creating the Azure resources, you'll need these values for your application:
+
+- `AIProjectEndpoint`: Your Azure AI Project endpoint URL
+- `AIAgentId`: The ID of your Azure AI Agent
 
 ## Getting Started
 
@@ -61,9 +122,8 @@ cd src
 Create a `.env` file in the `src` directory with the following settings:
 
 ```env
-AZURE_OPENAI_ENDPOINT=https://YOUR_RESOURCE_NAME.openai.azure.com/
-AZURE_OPENAI_API_KEY=YOUR_API_KEY
-AZURE_OPENAI_DEPLOYMENT_NAME=YOUR_DEPLOYMENT_NAME
+AIProjectEndpoint=https://your-ai-project-resource.azure.com/api/projects/your-ai-project
+AIAgentId=your-agent-id
 ```
 
 Alternatively, you can configure these in `appsettings.json` or via Azure Key Vault.
@@ -74,20 +134,24 @@ Alternatively, you can configure these in `appsettings.json` or via Azure Key Va
 dotnet run
 ```
 
-The API will be available at `https://localhost:5001` or `http://localhost:5000`.
+The application will be available at `http://localhost:5000`.
 
-### 5. Using the API
+### 5. Using the Application
 
-Once running, you can test the AI agent endpoint:
+The application provides a web-based chat interface for interacting with your AI agent:
+- Navigate to `http://localhost:5000` to access the chat interface
+- Or use the API endpoints directly:
+  - `POST /chat/threads` - Create a new chat thread
+  - `POST /chat/completions/{threadId}` - Send a message to a thread
 
-```
-POST /api/agent/process
-Content-Type: application/json
+### 6. API Endpoints
 
-{
-  "input": "Hello, how are you?"
-}
-```
+The application provides several API endpoints:
+
+- **GET /api/agents** - Get a list of all available agents
+- **GET /api/agents/{id}** - Get details for a specific agent
+- **POST /chat/threads** - Create a new conversation thread
+- **POST /chat/completions/{threadId}** - Send a message to a thread
 
 ## Building and Testing
 
@@ -123,34 +187,29 @@ docker run -p 8080:80 ai-foundry-agent
 
 This project includes a GitHub Actions workflow to deploy the application to Azure App Service. To use this workflow:
 
-1. Create an Azure Resource Group and App Service
-2. Set up GitHub Secrets with your Azure credentials:
-   - `AZURE_WEBAPP_PUBLISH_PROFILE`: Your Azure App Service publish profile
+1. Set up your Azure resources as described above
+2. Configure GitHub Secrets with your Azure credentials:
+   - `AZURE_WEBAPP_PUBLISH_PROFILE`: Your Azure App Service publish profile (can be obtained from the Azure portal)
 3. Push your code to the `main` branch to trigger the deployment
 
 The workflow is configured in `.github/workflows/deploy-azure.yml`.
 
-## Azure OpenAI Setup
+### Configuring GitHub Secrets
 
-To use the AI capabilities, you'll need:
-
-1. Create an Azure OpenAI resource in the Azure portal
-2. Deploy a model (e.g., gpt-35-turbo or gpt-4)
-3. Configure the endpoint, API key, and deployment name in your settings
-
-The application currently uses a mock implementation that returns simulated responses. To enable real AI capabilities:
-
-1. Update the OpenAIService in Program.cs with the correct Azure SDK implementation
-2. Ensure your Azure credentials are properly configured
-3. The service will automatically connect to Azure when credentials are present
+1. Go to your GitHub repository
+2. Navigate to Settings > Secrets and variables > Actions
+3. Add a new secret:
+   - Name: `AZURE_WEBAPP_PUBLISH_PROFILE`
+   - Value: Copy the publish profile from your Azure App Service (in Azure portal, go to your App Service > Overview > Get publish profile)
 
 ## Architecture
 
-The application follows a modular architecture with:
+The application follows a modern architecture with:
 
-- **Agent Services**: Core logic for AI agent functionality in `OpenAIService`
-- **Controllers**: API endpoints in `AgentController.cs`
-- **Configuration**: App settings and dependency injection
+- **AI Integration**: Uses Azure AI Agents Persistent SDK for agent communication
+- **Web Interface**: Modern chat UI using Bootstrap-like styling
+- **API Endpoints**: RESTful APIs for agent management
+- **Configuration**: Centralized configuration with validation
 - **Global Usings**: Centralized using statements in `GlobalUsings.cs`
 
 ## Contributing
