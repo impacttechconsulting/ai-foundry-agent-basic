@@ -60,7 +60,7 @@ This Terraform configuration uses modules to organize resources:
 - The AI Project and Agent resources need to be created separately in Azure AI Foundry (Terraform does not create these resources).
 - The `ai_project_endpoint` and `ai_agent_id` variables must be provided after creating the AI resources in Azure AI Foundry.
 - After deployment, configure your app's AI settings using the outputs from Terraform.
-- By default, the configuration uses Azure's lowest cost tier (D1 - Shared) for App Service to minimize costs.
+- By default, the configuration uses Azure's lowest cost tier for Linux App Service (B1 - Basic) to minimize costs.
 - Optional resources like Key Vault and Application Insights are not created unless explicitly configured (to avoid costs).
 
 ## Variables
@@ -71,7 +71,7 @@ This Terraform configuration uses modules to organize resources:
 | location | Azure region | East US |
 | app_service_plan_name | Name of the App Service Plan | ai-foundry-agent-plan |
 | app_service_name | Name of the App Service | ai-foundry-agent-app |
-| app_service_sku | SKU for the App Service Plan (D1=Shared - lowest cost, B1=B1 Basic) | D1 |
+| app_service_sku | SKU for the App Service Plan (B1=B1 Basic - lowest cost for Linux, S1=Standard, P1=Premium) | B1 |
 | ai_project_endpoint | Azure AI Project endpoint | "" |
 | ai_agent_id | AI Agent ID | "" |
 | key_vault_name | Name of the Key Vault (optional) | "" |

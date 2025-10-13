@@ -21,6 +21,7 @@ resource "azurerm_linux_web_app" "main" {
     ftps_state      = "Disabled"
     http2_enabled   = true
     minimum_tls_version = "1.2"
+    always_on       = false
   }
 
   app_settings = merge(
