@@ -168,7 +168,8 @@ const ChatInterface: React.FC = () => {
     <Box sx={{ 
       display: 'flex', 
       flexDirection: 'column', 
-      height: '100%', 
+      height: '100%',
+      maxHeight: '100vh',
       backgroundColor: 'background.default'
     }}>
       {/* Chat Header */}
@@ -188,162 +189,176 @@ const ChatInterface: React.FC = () => {
         </Typography>
       </Box>
 
-      {/* Chat Messages Area */}
+      {/* Main content area with messages and input */}
       <Box 
         sx={{ 
-          flex: 1, 
-          padding: 2, 
+          flex: 1,
           display: 'flex',
-          flexDirection: 'column',
-          gap: 2
+          flexDirection: 'column'
         }}
       >
-        {isLoading && (
-          <Box 
-            sx={{ 
-              display: 'flex', 
-              justifyContent: 'center', 
-              alignItems: 'center', 
-              height: '100%',
-              flexDirection: 'column'
-            }}
-          >
-            <CircularProgress color="primary" />
-            <Typography variant="h6" sx={{ mt: 2 }}>
-              Loading AI Assistant...
-            </Typography>
-            <Typography variant="body2">
-              Please wait while we connect to the service.
-            </Typography>
-          </Box>
-        )}
-        
+        {/* Chat Messages Area - This will scroll if needed */}
         <Box 
-          className={messages.length > 0 || isBotTyping ? 'chat-messages-container' : 'chat-messages-container no-scrollbar'}
           sx={{ 
             flex: 1,
-            overflowY: messages.length > 0 || isBotTyping ? 'auto' : 'hidden',
+            padding: 2,
             display: 'flex',
-            flexDirection: 'column'
+            flexDirection: 'column',
+            gap: 2,
+            overflow: 'hidden' /* Prevent double scrollbars at this level */
           }}
         >
-          {!isLoading && messages.length === 0 && !isBotTyping && (
+          {isLoading && (
             <Box 
               sx={{ 
                 display: 'flex', 
-                flexDirection: 'column', 
-                alignItems: 'center', 
                 justifyContent: 'center', 
-                height: '100%', 
-                textAlign: 'center',
-                padding: 4
+                alignItems: 'center', 
+                height: '100%',
+                flexDirection: 'column'
               }}
             >
-              <Avatar sx={{ 
-                width: 80, 
-                height: 80, 
-                mb: 2, 
-                bgcolor: 'primary.main' 
-              }}>
-                <AiIcon sx={{ fontSize: 40 }} />
-              </Avatar>
-              <Typography variant="h4" component="h2" gutterBottom>
-                Welcome to AI Foundry Agent!
+              <CircularProgress color="primary" />
+              <Typography variant="h6" sx={{ mt: 2 }}>
+                Loading AI Assistant...
               </Typography>
-              <Typography variant="body1" sx={{ mb: 3 }}>
-                I'm your intelligent assistant ready to help with various tasks and answer your questions.
+              <Typography variant="body2">
+                Please wait while we connect to the service.
               </Typography>
-              <Typography variant="body1" sx={{ mb: 3 }}>
-                How can I assist you today?
-              </Typography>
-              
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 1, mt: 2 }}>
-                {suggestions.map((suggestion, index) => (
-                  <Button
-                    key={index}
-                    variant="outlined"
-                    onClick={() => handleSuggestion(suggestion)}
-                    sx={{ 
-                      textTransform: 'none',
-                      borderColor: 'primary.main',
-                      color: 'primary.main',
-                      '&:hover': {
-                        backgroundColor: 'primary.main',
-                        color: 'white'
-                      }
-                    }}
-                  >
-                    {suggestion}
-                  </Button>
-                ))}
+            </Box>
+          )}
+          
+          <Box 
+            className={messages.length > 0 || isBotTyping ? 'chat-messages-container' : 'chat-messages-container no-scrollbar'}
+            sx={{ 
+              flex: 1,
+              overflowY: messages.length > 0 || isBotTyping ? 'auto' : 'hidden',
+              display: 'flex',
+              flexDirection: 'column'
+            }}
+          >
+        {!isLoading && messages.length === 0 && !isBotTyping && (
+          <Box 
+            sx={{ 
+              display: 'flex', 
+              flexDirection: 'column', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              height: '100%', 
+              textAlign: 'center',
+              padding: 4
+            }}
+          >
+            <Avatar sx={{ 
+              width: 80, 
+              height: 80, 
+              mb: 2, 
+              bgcolor: 'primary.main' 
+            }}>
+              <AiIcon sx={{ fontSize: 40 }} />
+            </Avatar>
+            <Typography variant="h4" component="h2" gutterBottom>
+              Welcome to AI Foundry Agent!
+            </Typography>
+            <Typography variant="body1" sx={{ mb: 3 }}>
+              I'm your intelligent assistant ready to help with various tasks and answer your questions.
+            </Typography>
+            <Typography variant="body1" sx={{ mb: 3 }}>
+              How can I assist you today?
+            </Typography>
+            
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 1, mt: 2 }}>
+              {suggestions.map((suggestion, index) => (
+                <Button
+                  key={index}
+                  variant="outlined"
+                  onClick={() => handleSuggestion(suggestion)}
+                  sx={{ 
+                    textTransform: 'none',
+                    borderColor: 'primary.main',
+                    color: 'primary.main',
+                    '&:hover': {
+                      backgroundColor: 'primary.main',
+                      color: 'white'
+                    }
+                  }}
+                >
+                  {suggestion}
+                </Button>
+              ))}
+            </Box>
+          </Box>
+        )}
+
+        {messages.map((message) => (
+          <Box
+            key={message.id}
+            sx={{
+              display: 'flex',
+              justifyContent: message.type === 'user' ? 'flex-end' : 'flex-start',
+              animation: 'fadeIn 0.3s ease-out'
+            }}
+          >
+            <Paper
+              sx={{
+                padding: 2,
+                maxWidth: '80%',
+                backgroundColor: message.type === 'user' ? 'primary.main' : 'grey.100',
+                color: message.type === 'user' ? 'white' : 'text.primary',
+                borderRadius: message.type === 'user' ? '20px 20px 4px 20px' : '20px 20px 20px 4px',
+                boxShadow: 2
+              }}
+            >
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
+                  {message.sender}
+                </Typography>
+                <Typography variant="caption" sx={{ opacity: 0.7 }}>
+                  {message.timestamp}
+                </Typography>
               </Box>
-            </Box>
-          )}
+              <Typography variant="body1">
+                {message.content}
+              </Typography>
+            </Paper>
+          </Box>
+        ))}
 
-          {messages.map((message) => (
-            <Box
-              key={message.id}
+        {isBotTyping && (
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'flex-start',
+            }}
+          >
+            <Paper
               sx={{
-                display: 'flex',
-                justifyContent: message.type === 'user' ? 'flex-end' : 'flex-start',
-                animation: 'fadeIn 0.3s ease-out'
+                padding: 2,
+                maxWidth: '80%',
+                backgroundColor: 'grey.100',
+                color: 'text.primary',
+                borderRadius: '20px 20px 20px 4px',
+                boxShadow: 2
               }}
             >
-              <Paper
-                sx={{
-                  padding: 2,
-                  maxWidth: '80%',
-                  backgroundColor: message.type === 'user' ? 'primary.main' : 'grey.100',
-                  color: message.type === 'user' ? 'white' : 'text.primary',
-                  borderRadius: message.type === 'user' ? '20px 20px 4px 20px' : '20px 20px 20px 4px',
-                  boxShadow: 2
-                }}
-              >
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
-                    {message.sender}
-                  </Typography>
-                  <Typography variant="caption" sx={{ opacity: 0.7 }}>
-                    {message.timestamp}
-                  </Typography>
-                </Box>
-                <Typography variant="body1">
-                  {message.content}
-                </Typography>
-              </Paper>
-            </Box>
-          ))}
-
-          {isBotTyping && (
-            <Box
-              sx={{
-                display: 'flex',
-                justifyContent: 'flex-start',
-              }}
-            >
-              <Paper
-                sx={{
-                  padding: 2,
-                  maxWidth: '80%',
-                  backgroundColor: 'grey.100',
-                  color: 'text.primary',
-                  borderRadius: '20px 20px 20px 4px',
-                  boxShadow: 2
-                }}
-              >
-                <Typography variant="body2" sx={{ fontStyle: 'italic' }}>
-                  AI Assistant is typing...
-                </Typography>
-              </Paper>
-            </Box>
-          )}
+              <Typography variant="body2" sx={{ fontStyle: 'italic' }}>
+                AI Assistant is typing...
+              </Typography>
+            </Paper>
+          </Box>
+        )}
 
           <div ref={messagesEndRef} />
         </Box>
       </Box>
+    </Box>
 
-      {/* Input Area */}
-      <Box sx={{ padding: 2, backgroundColor: 'background.paper' }}>
+    {/* Input Area - Always stays at the bottom */}
+    <Box sx={{ 
+      padding: 2, 
+      backgroundColor: 'background.paper',
+      flexShrink: 0
+    }}>
         <Box sx={{ display: 'flex', gap: 1 }}>
           <TextField
             fullWidth
