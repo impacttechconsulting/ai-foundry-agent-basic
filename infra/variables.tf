@@ -25,7 +25,7 @@ variable "app_service_name" {
 variable "app_service_sku" {
   description = "SKU for the App Service Plan (B1=B1 Basic - lowest cost for Linux, S1=Standard, P1=Premium)"
   type        = string
-  default     = "B1"  # Basic tier - lowest cost for Linux
+  default     = "B1" # Basic tier - lowest cost for Linux
 }
 
 variable "ai_project_endpoint" {

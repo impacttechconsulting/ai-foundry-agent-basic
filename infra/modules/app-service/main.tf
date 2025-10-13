@@ -29,6 +29,7 @@ resource "azurerm_linux_web_app" "main" {
       "AIProjectEndpoint" = var.ai_project_endpoint
       "AIAgentId"         = var.ai_agent_id
       "ASPNETCORE_ENVIRONMENT" = "Production"
+      "ASPNETCORE_HTTP_PORTS"  = "8080"
     },
     var.key_vault_url != "" ? {
       "AZURE_KEY_VAULT_URL" = var.key_vault_url
