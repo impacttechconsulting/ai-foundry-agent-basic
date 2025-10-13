@@ -8,7 +8,7 @@ on:
 env:
   AZURE_WEBAPP_NAME: ai-foundry-agent-app    # set this to your application's name
   AZURE_WEBAPP_PACKAGE_PATH: ./publish       # set this to the path to your web app project's published files
-  DOTNET_VERSION: '10.0.x'                   # set this to the .NET version to use
+  DOTNET_VERSION: '8.0.x'                    # set this to the .NET version to use
 
 permissions:
   contents: read

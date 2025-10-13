@@ -5,7 +5,7 @@ This directory contains Terraform scripts to provision the Azure resources neede
 ## Resources Provisioned
 
 - Azure Resource Group (modules/resource-group/)
-- App Service Plan and App Service (modules/app-service/)
+- App Service Plan and App Service with .NET 8 support (modules/app-service/)
 - Optional Key Vault (for storing secrets) (modules/optional-resources/)
 - Optional Application Insights (for monitoring) (modules/optional-resources/)
 
@@ -49,7 +49,7 @@ This directory contains Terraform scripts to provision the Azure resources neede
 This Terraform configuration uses modules to organize resources:
 
 - `modules/resource-group/` - Creates the Azure Resource Group
-- `modules/app-service/` - Creates App Service Plan and App Service
+- `modules/app-service/` - Creates App Service Plan and App Service with .NET 8 support
 - `modules/optional-resources/` - Creates optional resources (Key Vault, Application Insights)
 - Root directory - Orchestrates the modules and defines outputs
 

@@ -13,13 +13,13 @@ variable "location" {
 variable "app_service_plan_name" {
   description = "Name of the App Service Plan"
   type        = string
-  default     = "ai-foundry-agent-plan"
+  default     = "ai-foundry-agent-app-service-plan"
 }
 
 variable "app_service_name" {
   description = "Name of the App Service"
   type        = string
-  default     = "ai-foundry-agent-app"
+  default     = "ai-foundry-agent-app-service"
 }
 
 variable "app_service_sku" {
