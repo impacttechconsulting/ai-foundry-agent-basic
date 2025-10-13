@@ -32,3 +32,15 @@ variable "ai_agent_id" {
   description = "AI Agent ID"
   type        = string
 }
+
+variable "app_insights_instrumentation_key" {
+  description = "Application Insights instrumentation key (optional)"
+  type        = string
+  default     = ""
+}
+
+variable "key_vault_url" {
+  description = "Key Vault URL (optional)"
+  type        = string
+  default     = ""
+}

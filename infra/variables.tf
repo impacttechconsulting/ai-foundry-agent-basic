@@ -23,9 +23,9 @@ variable "app_service_name" {
 }
 
 variable "app_service_sku" {
-  description = "SKU for the App Service Plan"
+  description = "SKU for the App Service Plan (D1=Shared - lowest cost, B1=B1 Basic)"
   type        = string
-  default     = "B1"
+  default     = "D1"  # Shared/lowest cost tier
 }
 
 variable "ai_project_endpoint" {

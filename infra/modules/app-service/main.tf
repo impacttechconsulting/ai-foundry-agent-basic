@@ -23,11 +23,19 @@ resource "azurerm_linux_web_app" "main" {
     minimum_tls_version = "1.2"
   }
 
-  app_settings = {
-    "AIProjectEndpoint" = var.ai_project_endpoint
-    "AIAgentId"         = var.ai_agent_id
-    "ASPNETCORE_ENVIRONMENT" = "Production"
-  }
+  app_settings = merge(
+    {
+      "AIProjectEndpoint" = var.ai_project_endpoint
+      "AIAgentId"         = var.ai_agent_id
+      "ASPNETCORE_ENVIRONMENT" = "Production"
+    },
+    var.key_vault_url != "" ? {
+      "AZURE_KEY_VAULT_URL" = var.key_vault_url
+    } : {},
+    var.app_insights_instrumentation_key != "" ? {
+      "APPLICATIONINSIGHTS_CONNECTION_STRING" = "InstrumentationKey=${var.app_insights_instrumentation_key}"
+    } : {}
+  )
 }
 
 # Outputs

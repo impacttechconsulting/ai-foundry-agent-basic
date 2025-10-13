@@ -20,6 +20,8 @@ module "app_service" {
   app_service_sku       = var.app_service_sku
   ai_project_endpoint   = var.ai_project_endpoint
   ai_agent_id           = var.ai_agent_id
+  key_vault_url         = module.optional_resources.key_vault_url
+  app_insights_instrumentation_key = module.optional_resources.app_insights_instrumentation_key
 }
 
 # Call optional resources module
