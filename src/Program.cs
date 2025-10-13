@@ -2,9 +2,25 @@ using AiFoundryAgent.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Logging.AddConsole(options =>
+// Configure HTTPS for development environment
+#if DEBUG
+// In development, use HTTPS with dev certificate
+builder.WebHost.ConfigureKestrel(serverOptions =>
 {
-    options.FormatterName = "simple";
+    // Enable HTTPS with development certificate
+    serverOptions.ConfigureHttpsDefaults(httpsOptions =>
+    {
+        // Use the default development certificate
+        // In production, Azure App Service handles HTTPS termination
+    });
+});
+#endif
+builder.Logging.ClearProviders();
+builder.Logging.AddSimpleConsole(options =>
+{
+    options.IncludeScopes = true;
+    options.SingleLine = true;
+    options.TimestampFormat = "HH:mm:ss ";
 });
 
 builder.Services.AddOptions<ChatApiOptions>()
@@ -15,8 +31,8 @@ builder.Services.AddOptions<ChatApiOptions>()
 builder.Services.AddSingleton((provider) =>
 {
     var config = provider.GetRequiredService<IOptions<ChatApiOptions>>().Value;
+    Console.WriteLine($"AIProjectEndpoint: {config.AIProjectEndpoint}");
     PersistentAgentsClient client = new(config.AIProjectEndpoint, new DefaultAzureCredential());
-
     return client;
 });
 
@@ -45,6 +61,8 @@ if (app.Environment.IsDevelopment())
     app.UseDeveloperExceptionPage();
 }
 
+// app.UseHttpsRedirection();
+
 app.UseStaticFiles();
 
 app.UseRouting();
@@ -54,12 +72,16 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.UseCors("AllowAllOrigins");
-
 app.MapControllers();
+app.Start();
 
-app.Lifetime.ApplicationStarted.Register(() =>
+var server = app.Services.GetRequiredService<IServer>();
+IServerAddressesFeature? addressFeature = server.Features.Get<IServerAddressesFeature>();
+foreach (var address in addressFeature?.Addresses ?? [])
 {
-    logger.LogInformation("AI Foundry Agent running on http://localhost:5000 | Chat UI: http://localhost:5000 | API: /chat/threads & /chat/completions/{{threadId}}");
-});
-
-app.Run();
+    var uri = new Uri(address);
+    logger.LogInformation($"Kestrel is listening on address: {address}");
+    logger.LogInformation($"Kestrel is listening on port: {uri.Port}");
+}
+app.MapGet("/", () => $"Hi there, Kestrel is running on\n\n{string.Join("\n", addressFeature?.Addresses ?? [])}");
+app.WaitForShutdown();

@@ -1,4 +1,4 @@
-name: Build and deploy .NET Core application to Azure App Service
+name: Build and deploy (.NET application to Azure App Service) 
 
 on:
   push:
@@ -6,9 +6,9 @@ on:
   workflow_dispatch:
 
 env:
-  AZURE_WEBAPP_NAME: ai-foundry-agent-app    # set this to your application's name
-  AZURE_WEBAPP_PACKAGE_PATH: ./publish       # set this to the path to your web app project's published files
-  DOTNET_VERSION: '10.0.x'                   # set this to the .NET version to use
+  AZURE_WEBAPP_NAME: ai-foundry-agent-app-service # set this to your application's name
+  AZURE_WEBAPP_PACKAGE_PATH: ./publish            # set this to the path to your web app project's published files
+  DOTNET_VERSION: '8.0.x'                         # set this to the .NET version to use
 
 permissions:
   contents: read
@@ -35,7 +35,7 @@ jobs:
         run: dotnet test --no-build --configuration Release --verbosity normal
 
       - name: Publish
-        run: dotnet publish --configuration Release --output ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+        run: dotnet publish src/AiFoundryAgent.csproj --configuration Release --output ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4

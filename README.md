@@ -1,6 +1,6 @@
 # AI Foundry Agent Sample Application
 
-This repository contains a sample .NET 10 application demonstrating how to build an AI agent using Azure AI Foundry capabilities. The sample showcases best practices for developing intelligent agents that can interact with users and perform various tasks.
+This repository contains a sample .NET 8 application demonstrating how to build an AI agent using Azure AI Foundry capabilities. The sample showcases best practices for developing intelligent agents that can interact with users and perform various tasks.
 
 ## Overview
 
@@ -46,7 +46,7 @@ ai-foundry-agent-basic/
 
 ## Prerequisites
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
+- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
 - [Azure CLI](https://docs.microsoft.com/cli/azure/install-azure-cli)
 - Azure subscription with access to Azure AI Foundry services
 
@@ -89,7 +89,7 @@ az group create --name $RESOURCE_GROUP --location $LOCATION
 az appservice plan create --name $APP_SERVICE_PLAN --resource-group $RESOURCE_GROUP --sku B1 --is-linux
 
 # Create Web App
-az webapp create --resource-group $RESOURCE_GROUP --plan $APP_SERVICE_PLAN --name $WEB_APP_NAME --runtime "DOTNETCORE|10.0"
+az webapp create --resource-group $RESOURCE_GROUP --plan $APP_SERVICE_PLAN --name $WEB_APP_NAME --runtime "DOTNETCORE|8.0"
 
 # Configure your AI Foundry resources via Azure portal or Azure CLI
 # You'll need to set up an AI Project and Agent in Azure AI Foundry
