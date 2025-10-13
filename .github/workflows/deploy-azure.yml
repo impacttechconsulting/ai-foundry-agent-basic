@@ -35,7 +35,7 @@ jobs:
         run: dotnet test --no-build --configuration Release --verbosity normal
 
       - name: Publish
-        run: dotnet publish --configuration Release --output ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+        run: dotnet publish src/AiFoundryAgent.csproj --configuration Release --output ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4

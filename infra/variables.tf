@@ -23,9 +23,9 @@ variable "app_service_name" {
 }
 
 variable "app_service_sku" {
-  description = "SKU for the App Service Plan (D1=Shared - lowest cost, B1=B1 Basic)"
+  description = "SKU for the App Service Plan (B1=B1 Basic - lowest cost for Linux, S1=Standard, P1=Premium)"
   type        = string
-  default     = "D1"  # Shared/lowest cost tier
+  default     = "B1"  # Basic tier - lowest cost for Linux
 }
 
 variable "ai_project_endpoint" {
@@ -43,7 +43,7 @@ variable "ai_agent_id" {
 variable "ai_project_name" {
   description = "Name of the Azure AI Project"
   type        = string
-  default     = "ai-foundry-project"
+  default     = "impact-ai-foundry-project"
 }
 
 variable "key_vault_name" {
