@@ -9,12 +9,16 @@ The AI Foundry Agent sample application demonstrates:
 - Integration with Azure OpenAI Service
 - Intelligent agent architecture patterns
 - Natural language processing capabilities
+- Modern React front-end with TypeScript
 - Azure deployment strategies
+- Infrastructure as code with Terraform
+- Build orchestration with Makefile
 
 ## Project Structure
 
 ```
 ai-foundry-agent-basic/
+├── Makefile                 # Makefile for building, testing, and deploying
 ├── src/                     # Main application source code
 │   ├── AiFoundryAgent.csproj
 │   ├── Program.cs
@@ -29,8 +33,19 @@ ai-foundry-agent-basic/
 │   │   └── ChatApiOptions.cs
 │   ├── Views/
 │   │   └── Home/
-│   │       └── Index.cshtml
+│   │       └── (React app now serves the UI instead of Index.cshtml)
+│   ├── client-app/          # React client application
+│   │   ├── package.json
+│   │   ├── src/
+│   │   │   └── App.tsx      # Main React component
+│   │   └── public/
 │   └── appsettings.json
+├── infra/                   # Terraform infrastructure as code
+│   ├── main.tf
+│   ├── variables.tf
+│   ├── outputs.tf
+│   ├── provider.tf
+│   └── modules/
 ├── test/                    # Unit and integration tests
 │   ├── AiFoundryAgent.Tests.csproj
 │   └── AgentServiceTests.cs
@@ -130,16 +145,42 @@ Alternatively, you can configure these in `appsettings.json` or via Azure Key Va
 
 ### 4. Run the application
 
+#### Production Mode
 ```bash
 dotnet run
 ```
 
 The application will be available at `http://localhost:5000`.
 
+#### Development Mode
+For development with hot reloading, run both the React dev server and the .NET backend:
+
+Terminal 1 (React client):
+```bash
+cd src/client-app
+npm start
+```
+
+Terminal 2 (ASP.NET Core API):
+```bash
+cd src
+dotnet run
+```
+
+In development mode, the React app will be available at `http://localhost:3000` and will communicate with the API running at `http://localhost:5000`.
+
 ### 5. Using the Application
 
 The application provides a web-based chat interface for interacting with your AI agent:
+
+#### Production Mode
 - Navigate to `http://localhost:5000` to access the chat interface
+
+#### Development Mode
+- Navigate to `http://localhost:3000` to access the React development server with hot reloading
+- The React app communicates with the API running at `http://localhost:5000`
+
+#### API Endpoints (available in both modes)
 - Or use the API endpoints directly:
   - `POST /chat/threads` - Create a new chat thread
   - `POST /chat/completions/{threadId}` - Send a message to a thread
@@ -155,7 +196,31 @@ The application provides several API endpoints:
 
 ## Building and Testing
 
-### Build the application:
+### Using the Makefile (Recommended)
+
+This project includes a Makefile for easy orchestration of build, test, and deployment operations:
+
+```bash
+# View all available commands
+make help
+
+# Build both client and server applications
+make build
+
+# Build only the React client application
+make build-client
+
+# Build only the .NET server application
+make build-server
+
+# Run tests for both applications
+make test
+
+# Clean build artifacts
+make clean
+```
+
+### Direct .NET commands:
 
 ```bash
 # Build the main project
@@ -185,9 +250,35 @@ docker run -p 8080:80 ai-foundry-agent
 
 ## Azure Deployment
 
-This project includes a GitHub Actions workflow to deploy the application to Azure App Service. To use this workflow:
+This project includes infrastructure as code (Terraform) and a GitHub Actions workflow to deploy the application to Azure App Service.
 
-1. Set up your Azure resources as described above
+### Using the Makefile for Infrastructure and Deployment (Recommended)
+
+The project includes a Makefile that orchestrates both infrastructure setup and application deployment:
+
+```bash
+# Plan and deploy infrastructure using Terraform
+make deploy-infra
+
+# Deploy the application to Azure App Service
+make deploy-app
+
+# Deploy the complete solution (infrastructure + application)
+make deploy
+
+# Terraform operations
+make terraform-init        # Initialize Terraform
+make terraform-plan        # Plan infrastructure changes
+make terraform-apply       # Apply infrastructure changes
+make terraform-destroy     # Destroy infrastructure resources
+make terraform-validate    # Validate Terraform configuration
+```
+
+### Using GitHub Actions
+
+The project includes a GitHub Actions workflow to deploy the application to Azure App Service. To use this workflow:
+
+1. Set up your Azure resources as described above (or use the Makefile to deploy infrastructure)
 2. Configure GitHub Secrets with your Azure credentials:
    - `AZURE_WEBAPP_PUBLISH_PROFILE`: Your Azure App Service publish profile (can be obtained from the Azure portal)
 3. Push your code to the `main` branch to trigger the deployment
