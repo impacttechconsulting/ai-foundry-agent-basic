@@ -25,6 +25,18 @@
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow: hidden; /* Prevent double scrollbars at document level */
+      }
+      #root {
+        height: 100vh;
+        overflow: hidden; /* The React app handles its own scrolling */
+      }
+    </style>
     <title>AI Foundry Agent</title>
   </head>
   <body>
