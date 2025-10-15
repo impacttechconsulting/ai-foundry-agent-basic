@@ -52,7 +52,7 @@ public class AuthController : ControllerBase
 
     private string GenerateToken(string username)
     {
-        var tokenData = $"{username}:{DateTime.UtcNow.AddHours(24):O}"; // Valid for 24 hours
+        var tokenData = $"{username}|{DateTime.UtcNow.AddHours(24):O}"; // Valid for 24 hours, using | as separator to avoid conflicts with datetime format
         var tokenBytes = System.Text.Encoding.UTF8.GetBytes(tokenData);
         return Convert.ToBase64String(tokenBytes);
     }
