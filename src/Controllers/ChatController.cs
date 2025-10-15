@@ -2,6 +2,7 @@ namespace AiFoundryAgent.Controllers;
 
 [ApiController]
 [Route("[controller]/[action]")]
+[Authorize(AuthenticationSchemes = "BasicAuthentication")]
 
 public class ChatController(
     PersistentAgentsClient client,

@@ -1,24 +1,34 @@
-// Global using directives for the AI Foundry Agent project
-
-global using System;
-global using System.Collections.Generic;
-global using System.ComponentModel.DataAnnotations;
-global using System.Linq;
-global using System.Threading;
-global using System.Threading.Tasks;
 global using Microsoft.AspNetCore.Mvc;
-global using Microsoft.Extensions.Configuration;
-global using Microsoft.Extensions.DependencyInjection;
-global using Microsoft.Extensions.Hosting;
-global using Microsoft.Extensions.Logging;
 global using Microsoft.Extensions.Options;
-global using Microsoft.AspNetCore.Hosting.Server;
-global using Microsoft.AspNetCore.Hosting.Server.Features;
-
-global using Azure;
+global using System.Text;
+global using System.Text.Json;
+global using System.Security.Cryptography;
+global using System.ComponentModel.DataAnnotations;
+global using Microsoft.AspNetCore.Authorization;
 global using Azure.AI.Agents.Persistent;
+global using Microsoft.Extensions.Logging;
+global using System.ComponentModel;
 global using Azure.Identity;
-
-
 global using AiFoundryAgent.Models;
 global using AiFoundryAgent.Configuration;
+global using System.Text.Json.Serialization;
+global using Microsoft.AspNetCore.Authentication;
+global using Microsoft.AspNetCore.Authentication.Cookies;
+global using System.Security.Claims;
+global using System.Text.Encodings.Web;
+global using Microsoft.AspNetCore.Hosting;
+global using Microsoft.AspNetCore.Http;
+global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.Extensions.Hosting;
+global using Microsoft.AspNetCore.Builder;
+global using System.Runtime.CompilerServices;
+global using System.Collections.Generic;
+global using System.Linq;
+global using System.Threading.Tasks;
+global using Microsoft.AspNetCore.Server;
+global using Microsoft.AspNetCore.Http.Features;
+global using Microsoft.AspNetCore.Hosting.Server;
+global using Microsoft.AspNetCore.Hosting.Server.Features;
+global using Azure;
+global using Azure.Core;
+global using AiFoundryAgent;

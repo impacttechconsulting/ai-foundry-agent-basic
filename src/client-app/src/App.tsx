@@ -11,6 +11,7 @@ import {
 } from '@mui/material';
 import { Menu as MenuIcon } from '@mui/icons-material';
 import './App.css';
+import ApiClient from './utils/ApiClient';
 
 // Import components from separate files
 import Login from './components/Login';
@@ -28,17 +29,56 @@ const App: React.FC = () => {
   const [currentPage, setCurrentPage] = React.useState('dashboard'); // Default to dashboard after login
   const [isLoggedIn, setIsLoggedIn] = React.useState(false);
 
+  React.useEffect(() => {
+    // Check if user is already logged in on initial load
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      // Optionally validate the token with the backend
+      validateToken();
+    } else {
+      // If no token, show login page
+      setCurrentPage('login');
+      setIsLoggedIn(false);
+    }
+  }, []);
+
+  const validateToken = async () => {
+    try {
+      const response = await ApiClient.get('/auth/validate');
+      
+      if (response.ok) {
+        setIsLoggedIn(true);
+        setCurrentPage('dashboard');
+      } else {
+        // Token is invalid, clear it and redirect to login
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('username');
+        setCurrentPage('login');
+        setIsLoggedIn(false);
+      }
+    } catch (error) {
+      console.error('Error validating token:', error);
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('username');
+      setCurrentPage('login');
+      setIsLoggedIn(false);
+    }
+  };
+
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
 
   const handleLogin = () => {
-    // For demo purposes, just toggle login state
     setIsLoggedIn(true);
     setCurrentPage('dashboard');
   };
 
   const handleLogout = () => {
+    // Clear the authentication token
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('username');
+    
     setIsLoggedIn(false);
     setCurrentPage('login');
   };

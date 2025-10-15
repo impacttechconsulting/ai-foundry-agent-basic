@@ -1,18 +1,14 @@
 using AiFoundryAgent.Configuration;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.StaticFiles;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure HTTPS for development environment
 #if DEBUG
-// In development, use HTTPS with dev certificate
 builder.WebHost.ConfigureKestrel(serverOptions =>
 {
-    // Enable HTTPS with development certificate
     serverOptions.ConfigureHttpsDefaults(httpsOptions =>
     {
-        // Use the default development certificate
-        // In production, Azure App Service handles HTTPS termination
     });
 });
 #endif
@@ -50,13 +46,18 @@ builder.Services.AddCors(options =>
         });
 });
 
+builder.Services.AddAuthentication("BasicAuthentication")
+    .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>("BasicAuthentication", options =>
+    {
+        // Configure using TimeProvider to avoid ISystemClock deprecation
+        options.TimeProvider = TimeProvider.System;
+    });
+
 var app = builder.Build();
 
-// Log startup information
 var logger = app.Services.GetRequiredService<ILogger<Program>>();
 logger.LogInformation("Application starting...");
 
-// Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
@@ -64,10 +65,12 @@ if (app.Environment.IsDevelopment())
 
 // app.UseHttpsRedirection();
 
-// Serve static files (CSS, JS, images) from wwwroot
 app.UseStaticFiles();
 
 app.UseRouting();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 // Catch-all route to serve React app for client-side routing
 app.MapFallbackToFile("/{*path:nonfile}", "index.html");
@@ -88,5 +91,4 @@ foreach (var address in addressFeature?.Addresses ?? [])
     logger.LogInformation($"Kestrel is listening on address: {address}");
     logger.LogInformation($"Kestrel is listening on port: {uri.Port}");
 }
-// app.MapGet("/", () => $"Hi there, Kestrel is running on\n\n{string.Join("\n", addressFeature?.Addresses ?? [])}");
 app.WaitForShutdown();

@@ -13,10 +13,6 @@ public class AgentsController : ControllerBase
         _logger = logger;
     }
 
-    /// <summary>
-    /// Get a list of all available agents
-    /// </summary>
-    /// <returns>A list of agents with their information</returns>
     [HttpGet]
     public async Task<ActionResult<AgentListResponse>> GetAgentsAsync()
     {
@@ -26,7 +22,6 @@ public class AgentsController : ControllerBase
             
             // Note: The Azure AI Agents Persistent SDK doesn't have a direct method to list all agents
             // In a real implementation, you would query your agent management system
-            // For now, we'll simulate the call that would interact with Azure AI services
             var agents = await GetAgentsFromAzureAsync();
 
             var response = new AgentListResponse
@@ -48,7 +43,6 @@ public class AgentsController : ControllerBase
     private async Task<List<AgentInfo>> GetAgentsFromAzureAsync()
     {
         // Simulate an async call to Azure AI services
-        // In a real implementation, you would use the actual SDK to fetch agents
         await Task.Delay(100); // Simulate network delay
         
         return new List<AgentInfo>
@@ -83,11 +77,6 @@ public class AgentsController : ControllerBase
         };
     }
 
-    /// <summary>
-    /// Get a specific agent by ID
-    /// </summary>
-    /// <param name="id">The agent ID</param>
-    /// <returns>Agent information or 404 if not found</returns>
     [HttpGet("{id}")]
     public async Task<ActionResult<AgentInfo>> GetAgentAsync(string id)
     {
@@ -96,7 +85,6 @@ public class AgentsController : ControllerBase
             _logger.LogInformation("Fetching agent with ID: {AgentId}", id);
             
             // In a real implementation, you would fetch the specific agent from the Azure service
-            // For now, return mock data if the ID matches one of our known agents
             var agent = await GetAgentFromAzureAsync(id);
             if (agent == null)
             {
@@ -117,7 +105,6 @@ public class AgentsController : ControllerBase
     private async Task<AgentInfo?> GetAgentFromAzureAsync(string agentId)
     {
         // Simulate an async call to Azure AI services
-        // In a real implementation, you would use the actual SDK to fetch a specific agent
         await Task.Delay(50); // Simulate network delay
         
         var agents = new List<AgentInfo>

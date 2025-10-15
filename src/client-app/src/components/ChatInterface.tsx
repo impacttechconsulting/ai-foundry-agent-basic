@@ -12,6 +12,7 @@ import {
   IconButton
 } from '@mui/material';
 import { Psychology as AiIcon } from '@mui/icons-material';
+import ApiClient from '../utils/ApiClient';
 
 // Define interfaces
 interface Message {
@@ -57,10 +58,7 @@ const ChatInterface: React.FC = () => {
 
   // Create a new chat thread
   const createThread = async (): Promise<ThreadResponse> => {
-    const response = await fetch('/chat/threads', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-    });
+    const response = await ApiClient.post('/chat/threads');
 
     if (!response.ok) {
       const errorMessage = await response.text().catch(() => response.statusText);
@@ -76,11 +74,7 @@ const ChatInterface: React.FC = () => {
       throw new Error('No active thread. Please refresh the page.');
     }
 
-    const response = await fetch(`/chat/completions/${threadId}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(prompt),
-    });
+    const response = await ApiClient.post(`/chat/completions/${threadId}`, prompt);
 
     if (!response.ok) {
       const errorMessage = await response.text().catch(() => response.statusText);
