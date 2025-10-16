@@ -23,7 +23,7 @@ For each task, you will:
 5. Consider Azure Foundry deployment requirements during implementation
 6. Prepare agents for orchestration via Azure Agent Service
 7. Follow any project-specific requirements such as using global usings files rather than individual using statements in each .cs file
-8. ensure build is not breaking
+8. ensure build is not breaking but dont run the application. 
 
 When implementing agent functionality, ensure proper state management, communication patterns, and lifecycle management as required by the Microsoft Agent Framework. Always consider how your implementation will work within Azure's deployment and orchestration infrastructure.
 

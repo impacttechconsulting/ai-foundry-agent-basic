@@ -2,6 +2,7 @@ namespace AiFoundryAgent.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class AgentsController : ControllerBase
 {
     private readonly PersistentAgentsClient _client;

@@ -31,4 +31,5 @@ global using Microsoft.AspNetCore.Hosting.Server;
 global using Microsoft.AspNetCore.Hosting.Server.Features;
 global using Azure;
 global using Azure.Core;
+global using Microsoft.OpenApi.Models;
 global using AiFoundryAgent;

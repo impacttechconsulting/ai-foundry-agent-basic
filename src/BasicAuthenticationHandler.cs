@@ -14,7 +14,8 @@ public class BasicAuthenticationHandler : AuthenticationHandler<AuthenticationSc
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
         // Determine if request should be authenticated
-        bool shouldAuthenticate = Context.Request.Path.StartsWithSegments("/chat");
+        bool shouldAuthenticate = Context.Request.Path.StartsWithSegments("/api") |
+                                  Context.Request.Path.StartsWithSegments("/chat");
 
         // Special handling for /auth/validate - it needs authentication to verify the token
         if (Context.Request.Path.StartsWithSegments("/auth/validate"))
