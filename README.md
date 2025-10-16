@@ -9,6 +9,7 @@ The AI Foundry Agent sample application demonstrates:
 - Integration with Azure OpenAI Service
 - Intelligent agent architecture patterns
 - Natural language processing capabilities
+- RAG (Retrieval-Augmented Generation) capabilities with Azure AI Search
 - Modern React front-end with TypeScript
 - Azure deployment strategies
 - Infrastructure as code with Terraform
@@ -77,11 +78,16 @@ To deploy this application to Azure, you will need to create the following resou
    - **AI Project**: Contains and manages your AI agents
    - **AI Agent(s)**: The actual intelligent agents your application will interact with
 
-3. **[Optional] Azure Key Vault**
+3. **Azure AI Search** (for RAG implementation)
+   - Provides indexing and search capabilities for your own data
+   - Enables Retrieval-Augmented Generation (RAG) scenarios
+   - Free tier supports up to 50 MB of data and 5,000 documents
+
+4. **[Optional] Azure Key Vault**
    - To securely store your AI service keys and configuration
    - Recommended for production deployments
 
-4. **[Optional] Azure Application Insights**
+5. **[Optional] Azure Application Insights**
    - For monitoring your application performance and usage
    - Provides logs, metrics, and diagnostic capabilities
 

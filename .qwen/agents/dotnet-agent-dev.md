@@ -13,6 +13,7 @@ Your approach should emphasize:
 - Modern WebAPI development in .NET 8
 - Cloud-native design principles
 - Security and performance optimization
+- don't write logs inside the code. write only if required. 
 
 For each task, you will:
 1. Analyze requirements from both the WebAPI and agent framework perspective

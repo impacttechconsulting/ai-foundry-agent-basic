@@ -15,3 +15,19 @@ output "app_insights_instrumentation_key" {
   description = "Application Insights instrumentation key (if created)"
   sensitive   = true
 }
+
+output "search_service_endpoint" {
+  value       = module.ai_search.search_service_endpoint
+  description = "The endpoint URL for the Azure AI Search service"
+}
+
+output "search_service_admin_key" {
+  value       = module.ai_search.search_service_admin_key
+  description = "The primary admin key for the Azure AI Search service"
+  sensitive   = true
+}
+
+output "search_service_name" {
+  value       = module.ai_search.search_service_name
+  description = "The name of the Azure AI Search service"
+}

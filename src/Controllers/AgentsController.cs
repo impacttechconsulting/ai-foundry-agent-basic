@@ -18,10 +18,9 @@ public class AgentsController : ControllerBase
     {
         try
         {
-            _logger.LogInformation("Fetching list of agents");
+            _logger.LogInformation("Fetching list of agents from Azure Foundry services");
             
-            // Note: The Azure AI Agents Persistent SDK doesn't have a direct method to list all agents
-            // In a real implementation, you would query your agent management system
+            // Fetch agents from Azure Foundry services using the PersistentAgentsClient
             var agents = await GetAgentsFromAzureAsync();
 
             var response = new AgentListResponse
@@ -30,105 +29,81 @@ public class AgentsController : ControllerBase
                 TotalCount = agents.Count
             };
 
-            _logger.LogInformation("Successfully retrieved {Count} agents", agents.Count);
+            _logger.LogInformation("Successfully retrieved {Count} agents from Azure", agents.Count);
             return Ok(response);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error occurred while fetching agents list");
+            _logger.LogError(ex, "Error occurred while fetching agents list from Azure Foundry services");
             return StatusCode(500, new { error = "An error occurred while retrieving the agents list" });
         }
     }
 
-    private async Task<List<AgentInfo>> GetAgentsFromAzureAsync()
+    private async Task<List<PersistentAgent>> GetAgentsFromAzureAsync()
     {
-        // Simulate an async call to Azure AI services
-        await Task.Delay(100); // Simulate network delay
-        
-        return new List<AgentInfo>
+        var agents = new List<PersistentAgent>();
+
+        try
         {
-            new AgentInfo
+            // Fetch agents from Azure Foundry services using the Administration API
+            await foreach (var agent in _client.Administration.GetAgentsAsync())
             {
-                Id = "asst_OHueTDrq9jpp37QlgtXHPzwk",
-                Name = "Customer Support Agent",
-                Description = "Handles customer support inquiries and resolves common issues",
-                CreatedAt = DateTime.UtcNow.AddDays(-5),
-                Status = "Active",
-                Model = "gpt-4"
-            },
-            new AgentInfo
-            {
-                Id = "asst_2ndAgent1234567890",
-                Name = "Technical Support Agent",
-                Description = "Assists with technical problems and troubleshooting",
-                CreatedAt = DateTime.UtcNow.AddDays(-3),
-                Status = "Active",
-                Model = "gpt-4"
-            },
-            new AgentInfo
-            {
-                Id = "asst_3rdAgent0987654321",
-                Name = "Sales Assistant",
-                Description = "Helps customers with product information and purchase decisions",
-                CreatedAt = DateTime.UtcNow.AddDays(-1),
-                Status = "Active",
-                Model = "gpt-4"
+                agents.Add(agent);
             }
-        };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while fetching agents from Azure Foundry services");
+            // Return an empty list if there's an error, instead of throwing
+            // In a real implementation, you might want more sophisticated error handling
+        }
+
+        return agents;
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<AgentInfo>> GetAgentAsync(string id)
+    public async Task<ActionResult<PersistentAgent>> GetAgentAsync(string id)
     {
         try
         {
-            _logger.LogInformation("Fetching agent with ID: {AgentId}", id);
+            _logger.LogInformation("Fetching agent with ID: {AgentId} from Azure Foundry services", id);
             
-            // In a real implementation, you would fetch the specific agent from the Azure service
+            // Fetch the specific agent from Azure Foundry services
             var agent = await GetAgentFromAzureAsync(id);
             if (agent == null)
             {
-                _logger.LogWarning("Agent with ID {AgentId} not found", id);
+                _logger.LogWarning("Agent with ID {AgentId} not found in Azure services", id);
                 return NotFound(new { error = "Agent not found" });
             }
 
-            _logger.LogInformation("Successfully retrieved agent: {AgentName}", agent.Name);
+            _logger.LogInformation("Successfully retrieved agent: {AgentName} from Azure", agent.Name ?? "Unnamed Agent");
             return Ok(agent);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error occurred while fetching agent with ID: {AgentId}", id);
+            _logger.LogError(ex, "Error occurred while fetching agent with ID: {AgentId} from Azure Foundry services", id);
             return StatusCode(500, new { error = "An error occurred while retrieving the agent" });
         }
     }
 
-    private async Task<AgentInfo?> GetAgentFromAzureAsync(string agentId)
+    private async Task<PersistentAgent?> GetAgentFromAzureAsync(string agentId)
     {
-        // Simulate an async call to Azure AI services
-        await Task.Delay(50); // Simulate network delay
-        
-        var agents = new List<AgentInfo>
+        try
         {
-            new AgentInfo
+            // Fetch the specific agent from Azure Foundry services using the Administration API
+            var response = await _client.Administration.GetAgentAsync(agentId);
+            
+            if (response.HasValue)
             {
-                Id = "asst_OHueTDrq9jpp37QlgtXHPzwk",
-                Name = "Customer Support Agent",
-                Description = "Handles customer support inquiries and resolves common issues",
-                CreatedAt = DateTime.UtcNow.AddDays(-5),
-                Status = "Active",
-                Model = "gpt-4"
-            },
-            new AgentInfo
-            {
-                Id = "asst_2ndAgent1234567890",
-                Name = "Technical Support Agent",
-                Description = "Assists with technical problems and troubleshooting",
-                CreatedAt = DateTime.UtcNow.AddDays(-3),
-                Status = "Active",
-                Model = "gpt-4"
+                return response.Value;
             }
-        };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while fetching agent {AgentId} from Azure Foundry services", agentId);
+            // Return null if there's an error, which will result in a 404
+        }
 
-        return agents.FirstOrDefault(a => a.Id.Equals(agentId, StringComparison.OrdinalIgnoreCase));
+        return null;
     }
 }

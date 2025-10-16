@@ -57,3 +57,15 @@ variable "application_insights_name" {
   type        = string
   default     = ""
 }
+
+variable "search_service_name" {
+  description = "Name of the Azure AI Search service"
+  type        = string
+  default     = "ai-foundry-agent-search"
+}
+
+variable "search_service_sku" {
+  description = "SKU for the Azure AI Search service (free, basic, standard, etc.)"
+  type        = string
+  default     = "free"  # Free tier allows up to 50 MB of data
+}

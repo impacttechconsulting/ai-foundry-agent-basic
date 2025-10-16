@@ -33,3 +33,12 @@ module "optional_resources" {
   application_insights_name = var.application_insights_name
   tenant_id                 = data.azurerm_client_config.current.tenant_id
 }
+
+# Call AI Search module
+module "ai_search" {
+  source                    = "./modules/ai-search"
+  resource_group_name       = module.resource_group.resource_group_name
+  location                  = var.location
+  search_service_name       = var.search_service_name
+  search_service_sku        = var.search_service_sku
+}

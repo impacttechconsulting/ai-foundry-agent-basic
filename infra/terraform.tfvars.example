@@ -10,3 +10,5 @@ ai_project_endpoint    = "https://my-ai-project.azure.com/api/projects/my-projec
 ai_agent_id            = "my-agent-id"
 key_vault_name         = "my-ai-foundry-kv"
 application_insights_name = "my-ai-foundry-ai"
+search_service_name    = "my-ai-foundry-search"
+search_service_sku     = "free"  # Free tier allows up to 50 MB of data
