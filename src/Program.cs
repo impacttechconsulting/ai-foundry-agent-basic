@@ -72,12 +72,13 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Catch-all route to serve React app for client-side routing
-app.MapFallbackToFile("/{*path:nonfile}", "index.html");
-
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+// Catch-all route to serve React app for client-side routing
+// This should come after API routes to avoid intercepting them
+app.MapFallbackToFile("/{*path:nonfile}", "index.html");
 
 app.UseCors("AllowAllOrigins");
 app.MapControllers();

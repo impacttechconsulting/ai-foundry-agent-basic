@@ -63,7 +63,7 @@ public class AuthController : ControllerBase
         {
             var tokenData = Convert.FromBase64String(token);
             var decodedString = System.Text.Encoding.UTF8.GetString(tokenData);
-            var parts = decodedString.Split(':');
+            var parts = decodedString.Split('|');
             
             if (parts.Length != 2)
                 return false;
@@ -88,7 +88,7 @@ public class AuthController : ControllerBase
         {
             var tokenData = Convert.FromBase64String(token);
             var decodedString = System.Text.Encoding.UTF8.GetString(tokenData);
-            var parts = decodedString.Split(':');
+            var parts = decodedString.Split('|');
             
             if (parts.Length >= 1)
                 return parts[0];

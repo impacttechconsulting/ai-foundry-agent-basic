@@ -71,7 +71,7 @@ public class BasicAuthenticationHandler : AuthenticationHandler<AuthenticationSc
         {
             var tokenData = Convert.FromBase64String(token);
             var decodedString = Encoding.UTF8.GetString(tokenData);
-            var parts = decodedString.Split('|');  // Using | as separator to avoid conflicts with datetime format
+            var parts = decodedString.Split('|');
 
             if (parts.Length != 2)
                 return (false, string.Empty);

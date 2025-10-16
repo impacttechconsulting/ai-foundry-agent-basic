@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Box,
   Paper,
@@ -40,12 +40,12 @@ const ChatInterface: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Format time to HH:MM format
-  const formatTime = (date: Date): string => {
+  const formatTime = useCallback((date: Date): string => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
+  }, []);
 
   // Add a new message to the chat
-  const addMessage = (sender: string, type: 'user' | 'ai', content: string) => {
+  const addMessage = useCallback((sender: string, type: 'user' | 'ai', content: string) => {
     const newMessage: Message = {
       id: Date.now().toString(),
       sender,
@@ -54,10 +54,10 @@ const ChatInterface: React.FC = () => {
       type,
     };
     setMessages(prev => [...prev, newMessage]);
-  };
+  }, [formatTime]);
 
   // Create a new chat thread
-  const createThread = async (): Promise<ThreadResponse> => {
+  const createThread = useCallback(async (): Promise<ThreadResponse> => {
     const response = await ApiClient.post('/chat/threads');
 
     if (!response.ok) {
@@ -66,10 +66,10 @@ const ChatInterface: React.FC = () => {
     }
 
     return response.json();
-  };
+  }, []);
 
   // Send a prompt to the API
-  const sendPrompt = async (prompt: string): Promise<CompletionResponse> => {
+  const sendPrompt = useCallback(async (prompt: string): Promise<CompletionResponse> => {
     if (!threadId) {
       throw new Error('No active thread. Please refresh the page.');
     }
@@ -82,10 +82,10 @@ const ChatInterface: React.FC = () => {
     }
 
     return response.json();
-  };
+  }, [threadId]);
 
   // Handle sending a message
-  const sendMessage = async () => {
+  const sendMessage = useCallback(async () => {
     if (!inputValue.trim() || !threadId) return;
 
     const prompt = inputValue.trim();
@@ -109,16 +109,16 @@ const ChatInterface: React.FC = () => {
     } finally {
       setIsBotTyping(false);
     }
-  };
+  }, [inputValue, threadId, addMessage, sendPrompt]);
 
   // Handle a suggestion
-  const handleSuggestion = (text: string) => {
+  const handleSuggestion = useCallback((text: string) => {
     setInputValue(text);
     setTimeout(() => {
       const sendButton = document.getElementById('sendButton');
       if (sendButton) sendButton.click();
     }, 100);
-  };
+  }, []);
 
   // Initialize the chat on component mount
   useEffect(() => {
@@ -136,7 +136,7 @@ const ChatInterface: React.FC = () => {
     };
 
     initializeChat();
-  }, []);
+  }, [addMessage, createThread]);
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -144,11 +144,11 @@ const ChatInterface: React.FC = () => {
   }, [messages, isBotTyping]);
 
   // Handle Enter key press in input field
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       sendMessage();
     }
-  };
+  }, [sendMessage]);
 
   // Suggested prompts
   const suggestions = [
