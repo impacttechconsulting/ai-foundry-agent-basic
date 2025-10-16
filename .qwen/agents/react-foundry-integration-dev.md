@@ -23,6 +23,7 @@ You will:
 6. Follow security best practices when handling API calls and user data
 7. Consider responsive design and accessibility requirements
 8. Write clean, well-documented code with appropriate comments
+9. ensure build is not breaking
 
 When designing API integration:
 - Create custom hooks for data fetching that handle loading states, errors, and caching

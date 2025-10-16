@@ -15,9 +15,9 @@ import ApiClient from './utils/ApiClient';
 
 // Import components from separate files
 import Login from './components/Login';
-import ChatInterface from './components/ChatInterface';
+import ChatAgent from './components/ChatAgent';
 import Dashboard from './components/Dashboard';
-import RagDemo from './components/RagDemo';
+import Rag from './components/Rag';
 import ContentUnderstanding from './components/ContentUnderstanding';
 import Navigation from './components/Navigation';
 
@@ -126,8 +126,8 @@ const App: React.FC = () => {
           </IconButton>
           <Typography variant="h6" noWrap component="div">
             {currentPage === 'dashboard' && 'Dashboard'}
-            {currentPage === 'chat' && 'AI Agent'}
-            {currentPage === 'rag' && 'RAG Demo'}
+            {currentPage === 'chat' && 'Chat Agent'}
+            {currentPage === 'rag' && 'RAG'}
             {currentPage === 'content' && 'Content Understanding'}
           </Typography>
         </Toolbar>
@@ -179,8 +179,8 @@ const App: React.FC = () => {
         
         {/* Render the appropriate page based on current selection */}
         {currentPage === 'dashboard' && <Dashboard />}
-        {currentPage === 'chat' && <ChatInterface />}
-        {currentPage === 'rag' && <RagDemo />}
+        {currentPage === 'chat' && <ChatAgent />}
+        {currentPage === 'rag' && <Rag />}
         {currentPage === 'content' && <ContentUnderstanding />}
       </Box>
     </Box>

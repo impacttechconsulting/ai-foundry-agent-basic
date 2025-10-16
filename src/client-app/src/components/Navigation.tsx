@@ -61,7 +61,7 @@ const Navigation: React.FC<NavigationProps> = ({ currentPage, onNavigate, onLogo
             <ListItemIcon>
               <AgentIcon />
             </ListItemIcon>
-            <ListItemText primary="Agent" />
+            <ListItemText primary="Chat Agent" />
           </ListItemButton>
         </ListItem>
         

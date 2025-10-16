@@ -31,7 +31,7 @@ interface CompletionResponse {
   data: string;
 }
 
-const ChatInterface: React.FC = () => {
+const ChatAgent: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState<string>('');
   const [threadId, setThreadId] = useState<string | null>(null);
@@ -391,4 +391,4 @@ const ChatInterface: React.FC = () => {
   );
 };
 
-export default ChatInterface;
+export default ChatAgent;
