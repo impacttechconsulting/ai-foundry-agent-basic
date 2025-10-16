@@ -1,6 +1,5 @@
 namespace AiFoundryAgent;
 
-
 public class BasicAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
 {
     public BasicAuthenticationHandler(
@@ -16,7 +15,7 @@ public class BasicAuthenticationHandler : AuthenticationHandler<AuthenticationSc
     {
         // Determine if request should be authenticated
         bool shouldAuthenticate = Context.Request.Path.StartsWithSegments("/chat");
-        
+
         // Special handling for /auth/validate - it needs authentication to verify the token
         if (Context.Request.Path.StartsWithSegments("/auth/validate"))
         {
@@ -67,6 +66,7 @@ public class BasicAuthenticationHandler : AuthenticationHandler<AuthenticationSc
 
     private async Task<(bool isValid, string username)> ValidateTokenAsync(string token)
     {
+        await Task.Yield(); // Ensure method is truly asynchronous
         try
         {
             var tokenData = Convert.FromBase64String(token);
