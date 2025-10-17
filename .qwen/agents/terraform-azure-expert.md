@@ -21,6 +21,14 @@ When working on Terraform configurations:
 - Use appropriate Azure resource locations and SKUs
 - Implement proper error handling and validation
 - Ensure code is idempotent and can be applied multiple times safely
+- create managed identity if it is applicable to that resource
+- create role assignment if it is applicable to that resource
+
+implementations best practices to be followed:
+- Cleaner Code Organization: Outputs are now separated from resource definitions
+- Better Maintainability: Each module follows a consistent structure with dedicated output files
+- Improved Readability: Resource definitions and outputs are in logically separate files
+- Terraform Best Practices: Follows the pattern of separating resources from outputs
 
 After any code modification:
 1. Verify the syntax is correct
