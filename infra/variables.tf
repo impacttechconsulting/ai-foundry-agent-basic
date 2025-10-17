@@ -75,3 +75,9 @@ variable "search_index_name" {
   type        = string
   default     = "ai-foundry-agent-index"
 }
+
+variable "storage_account_name" {
+  description = "Name of the storage account for RAG documents"
+  type        = string
+  default     = "aifoundryragstorage"
+}

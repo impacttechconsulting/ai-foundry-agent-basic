@@ -51,3 +51,18 @@ output "search_index_name" {
   value       = module.ai_search.search_index_name
   description = "The name of the search index created in the Azure AI Search service"
 }
+
+output "storage_account_name" {
+  value       = module.storage_account.storage_account_name
+  description = "The name of the storage account for RAG documents"
+}
+
+output "storage_account_blob_endpoint" {
+  value       = module.storage_account.storage_account_primary_blob_endpoint
+  description = "The blob endpoint URL for the storage account"
+}
+
+output "documents_container_name" {
+  value       = module.storage_account.documents_container_name
+  description = "The name of the documents container in storage account"
+}

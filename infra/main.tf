@@ -10,6 +10,34 @@ module "resource_group" {
   location            = var.location
 }
 
+# Call storage account module for RAG documents
+module "storage_account" {
+  source              = "./modules/storage-account"
+  resource_group_name = module.resource_group.resource_group_name
+  location            = var.location
+  storage_account_name = var.storage_account_name
+}
+
+# Call AI Search module
+module "ai_search" {
+  source              = "./modules/ai-search"
+  resource_group_name = module.resource_group.resource_group_name
+  location            = var.location
+  search_service_name = var.search_service_name
+  search_service_sku  = var.search_service_sku
+  search_index_name   = var.search_index_name
+}
+
+# Call optional resources module
+module "optional_resources" {
+  source                    = "./modules/optional-resources"
+  resource_group_name       = module.resource_group.resource_group_name
+  location                  = var.location
+  key_vault_name            = var.key_vault_name
+  application_insights_name = var.application_insights_name
+  tenant_id                 = data.azurerm_client_config.current.tenant_id
+}
+
 # Call app service module
 module "app_service" {
   source                           = "./modules/app-service"
@@ -25,24 +53,5 @@ module "app_service" {
   search_service_endpoint          = module.ai_search.search_service_endpoint
   search_service_admin_key         = module.ai_search.search_service_admin_key
   search_index_name                = var.search_index_name
-}
-
-# Call optional resources module
-module "optional_resources" {
-  source                    = "./modules/optional-resources"
-  resource_group_name       = module.resource_group.resource_group_name
-  location                  = var.location
-  key_vault_name            = var.key_vault_name
-  application_insights_name = var.application_insights_name
-  tenant_id                 = data.azurerm_client_config.current.tenant_id
-}
-
-# Call AI Search module
-module "ai_search" {
-  source              = "./modules/ai-search"
-  resource_group_name = module.resource_group.resource_group_name
-  location            = var.location
-  search_service_name = var.search_service_name
-  search_service_sku  = var.search_service_sku
-  search_index_name   = var.search_index_name
+  storage_account_name             = module.storage_account.storage_account_name
 }

@@ -46,6 +46,9 @@ resource "azurerm_linux_web_app" "main" {
       "AzureAISearch__IndexName" = var.search_index_name
       # Using managed identity for authentication instead of API key
       "AzureAISearch__UseManagedIdentity" = "true"
+    } : {},
+    var.storage_account_name != "" ? {
+      "StorageAccountName" = var.storage_account_name
     } : {}
   )
 }

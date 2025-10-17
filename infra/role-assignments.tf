@@ -13,6 +13,19 @@ resource "azurerm_role_assignment" "app_service_search_contributor" {
   ]
 }
 
+# Assign Storage Blob Data Contributor role to allow App Service to read documents from storage
+resource "azurerm_role_assignment" "app_service_storage_contributor" {
+  scope                = module.storage_account.storage_account_id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = module.app_service.app_service_principal_id
+
+  depends_on = [
+    module.app_service
+  ]
+}
+
+
+
 # Alternative: More specific roles for production scenarios
 # For read-only access to search indexes:
 # resource "azurerm_role_assignment" "app_service_search_queryer" {

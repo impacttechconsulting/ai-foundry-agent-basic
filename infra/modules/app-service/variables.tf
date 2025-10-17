@@ -62,3 +62,9 @@ variable "search_index_name" {
   type        = string
   default     = ""
 }
+
+variable "storage_account_name" {
+  description = "Storage account name for RAG documents (optional)"
+  type        = string
+  default     = ""
+}
