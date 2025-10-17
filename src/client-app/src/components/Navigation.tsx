@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  Box,
   Toolbar,
   Divider,
   List,
