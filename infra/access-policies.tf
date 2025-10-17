@@ -18,6 +18,10 @@ resource "azurerm_key_vault_access_policy" "app_service_key_vault_access" {
   certificate_permissions = [
     "Get", "List", "Create", "Delete"
   ]
+
+  depends_on = [
+    module.app_service
+  ]
 }
 
 # Key Vault RBAC role assignment for App Service managed identity (modern method)
@@ -26,6 +30,10 @@ resource "azurerm_role_assignment" "app_service_key_vault_secrets_user" {
   scope                = module.optional_resources.key_vault_id
   role_definition_name = "Key Vault Secrets User"
   principal_id         = module.app_service.app_service_principal_id
+
+  depends_on = [
+    module.app_service
+  ]
 }
 
 resource "azurerm_role_assignment" "app_service_key_vault_reader" {
@@ -33,4 +41,8 @@ resource "azurerm_role_assignment" "app_service_key_vault_reader" {
   scope                = module.optional_resources.key_vault_id
   role_definition_name = "Key Vault Reader"
   principal_id         = module.app_service.app_service_principal_id
+
+  depends_on = [
+    module.app_service
+  ]
 }
