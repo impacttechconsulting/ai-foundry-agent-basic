@@ -3,7 +3,7 @@
 # Allow App Service to read and write Application Insights data
 resource "azurerm_role_assignment" "app_service_application_insights_contributor" {
   count                = var.application_insights_name != "" ? 1 : 0
-  scope                = module.optional_resources.app_insights_id  # This references the module output in main.tf
+  scope                = module.optional_resources.app_insights_id # This references the module output in main.tf
   role_definition_name = "Application Insights Component Contributor"
   principal_id         = module.app_service.app_service_principal_id
 

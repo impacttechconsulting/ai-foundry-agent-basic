@@ -23,8 +23,8 @@ output "search_service_id" {
   description = "The resource ID of the Azure AI Search service"
 }
 
-# Output the search index name
+# Output the search index name (to be created manually or via other means)
 output "search_index_name" {
   value       = var.search_index_name
-  description = "The name of the search index"
+  description = "The name of the search index (to be created manually or via other means)"
 }

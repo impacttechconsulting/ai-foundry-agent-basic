@@ -26,7 +26,7 @@ variable "location" {
 variable "search_service_sku" {
   description = "SKU for the Azure AI Search service (free, basic, standard, etc.)"
   type        = string
-  default     = "free"  # Free tier allows up to 50 MB of data
+  default     = "free" # Free tier allows up to 50 MB of data
 }
 
 variable "search_service_replica_count" {

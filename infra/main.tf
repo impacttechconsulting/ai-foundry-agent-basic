@@ -12,9 +12,9 @@ module "resource_group" {
 
 # Call storage account module for RAG documents
 module "storage_account" {
-  source              = "./modules/storage-account"
-  resource_group_name = module.resource_group.resource_group_name
-  location            = var.location
+  source               = "./modules/storage-account"
+  resource_group_name  = module.resource_group.resource_group_name
+  location             = var.location
   storage_account_name = var.storage_account_name
 }
 

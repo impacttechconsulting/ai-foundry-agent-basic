@@ -71,7 +71,7 @@ variable "search_service_sku" {
 }
 
 variable "search_index_name" {
-  description = "Name of the Azure AI Search index to use"
+  description = "Name of the Azure AI Search index to use (must be created manually or via other means)"
   type        = string
   default     = "ai-foundry-agent-index"
 }

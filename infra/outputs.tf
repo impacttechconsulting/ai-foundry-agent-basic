@@ -49,7 +49,7 @@ output "app_insights_id" {
 
 output "search_index_name" {
   value       = module.ai_search.search_index_name
-  description = "The name of the search index created in the Azure AI Search service"
+  description = "The name of the search index (to be created manually or via other means)"
 }
 
 output "storage_account_name" {
