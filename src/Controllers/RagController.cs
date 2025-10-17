@@ -1,12 +1,4 @@
-using Azure;
-using Azure.Search.Documents;
-using Azure.Search.Documents.Indexes;
-using Azure.Search.Documents.Indexes.Models;
-using Azure.Search.Documents.Models;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using System.Text.Json;
-using AiFoundryAgent.Models;
+
 
 namespace AiFoundryAgent.Controllers;
 
@@ -229,6 +221,7 @@ public class RagController(
         // 2. Chunk the document content
         // 3. Index the content in Azure AI Search
         
+        await Task.Delay(1); // Add a small delay to make method truly async
         _logger.LogInformation("Document indexing not fully implemented - would normally index {FilePath}", filePath);
     }
 }

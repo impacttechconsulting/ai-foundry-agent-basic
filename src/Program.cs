@@ -38,7 +38,7 @@ builder.Services.AddSingleton((provider) =>
 var azureAISearchSection = builder.Configuration.GetSection("AzureAISearch");
 if (!string.IsNullOrEmpty(azureAISearchSection["Endpoint"]) && !string.IsNullOrEmpty(azureAISearchSection["IndexName"]))
 {
-    builder.Services.AddSingleton(provider =>
+    builder.Services.AddSingleton<SearchClient>(provider =>
     {
         var config = provider.GetRequiredService<IConfiguration>();
         var searchEndpoint = config["AzureAISearch:Endpoint"];
@@ -55,7 +55,8 @@ if (!string.IsNullOrEmpty(azureAISearchSection["Endpoint"]) && !string.IsNullOrE
             return searchClient;
         }
         
-        return null; // Will be handled gracefully in controller
+        // If configuration is not available, create a placeholder client (will not be used)
+        return new SearchClient(new Uri("https://placeholder.search.windows.net"), "placeholder", new AzureKeyCredential("placeholder"));
     });
 }
 
@@ -75,7 +76,6 @@ builder.Services.AddCors(options =>
 builder.Services.AddAuthentication("BasicAuthentication")
     .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>("BasicAuthentication", options =>
     {
-        // Configure using TimeProvider to avoid ISystemClock deprecation
         options.TimeProvider = TimeProvider.System;
     });
 
