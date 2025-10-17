@@ -14,75 +14,48 @@ resource "azurerm_search_service" "ai_search" {
 }
 
 # Create the search index within the search service
-resource "azapi_resource" "search_index" {
-  type      = "Microsoft.Search/searchServices/indexes@2023-11-01"
-  name      = var.search_index_name
-  parent_id = azurerm_search_service.ai_search.id
+resource "azurerm_search_index" "search_index" {
+  name                = var.search_index_name
+  search_service_name = azurerm_search_service.ai_search.name
+  resource_group_name = var.resource_group_name
 
-  body = jsonencode({
-    fields = [
-      {
-        name = "id"
-        type = "Edm.String"
-        key = true
-        searchable = false
-        filterable = false
-        sortable = false
-        facetable = false
-        retrievable = true
-      },
-      {
-        name = "content"
-        type = "Edm.String"
-        key = false
-        searchable = true
-        filterable = false
-        sortable = false
-        facetable = false
-        retrievable = true
-      },
-      {
-        name = "title"
-        type = "Edm.String"
-        key = false
-        searchable = true
-        filterable = false
-        sortable = true
-        facetable = false
-        retrievable = true
-      },
-      {
-        name = "filepath"
-        type = "Edm.String"
-        key = false
-        searchable = true
-        filterable = false
-        sortable = false
-        facetable = false
-        retrievable = true
-      },
-      {
-        name = "url"
-        type = "Edm.String"
-        key = false
-        searchable = true
-        filterable = false
-        sortable = false
-        facetable = false
-        retrievable = true
-      },
-      {
-        name = "metadata_storage_path"
-        type = "Edm.String"
-        key = false
-        searchable = true
-        filterable = false
-        sortable = false
-        facetable = false
-        retrievable = true
-      }
-    ]
-  })
+  # Define the fields for the search index
+  field {
+    name = "id"
+    type = "Edm.String"
+    key  = true
+  }
+
+  field {
+    name     = "content"
+    type     = "Edm.String"
+    searchable = true
+  }
+
+  field {
+    name     = "title"
+    type     = "Edm.String"
+    searchable = true
+    sortable = true
+  }
+
+  field {
+    name     = "filepath"
+    type     = "Edm.String"
+    searchable = true
+  }
+
+  field {
+    name     = "url"
+    type     = "Edm.String"
+    searchable = true
+  }
+
+  field {
+    name     = "metadata_storage_path"
+    type     = "Edm.String"
+    searchable = true
+  }
 
   depends_on = [azurerm_search_service.ai_search]
 }
