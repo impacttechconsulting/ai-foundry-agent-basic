@@ -20,74 +20,75 @@ resource "azapi_resource" "search_index" {
   parent_id = azurerm_search_service.ai_search.id
 
   body = {
-    properties = {
-      fields = [
-        {
-          name = "id"
-          type = "Edm.String"
-          key = true
-          searchable = false
-          filterable = false
-          sortable = false
-          facetable = false
-          retrievable = true
-        },
-        {
-          name = "content"
-          type = "Edm.String"
-          key = false
-          searchable = true
-          filterable = false
-          sortable = false
-          facetable = false
-          retrievable = true
-        },
-        {
-          name = "title"
-          type = "Edm.String"
-          key = false
-          searchable = true
-          filterable = false
-          sortable = true
-          facetable = false
-          retrievable = true
-        },
-        {
-          name = "filepath"
-          type = "Edm.String"
-          key = false
-          searchable = true
-          filterable = false
-          sortable = false
-          facetable = false
-          retrievable = true
-        },
-        {
-          name = "url"
-          type = "Edm.String"
-          key = false
-          searchable = true
-          filterable = false
-          sortable = false
-          facetable = false
-          retrievable = true
-        },
-        {
-          name = "metadata_storage_path"
-          type = "Edm.String"
-          key = false
-          searchable = true
-          filterable = false
-          sortable = false
-          facetable = false
-          retrievable = true
-        }
-      ]
-    }
+    fields = [
+      {
+        name = "id"
+        type = "Edm.String"
+        key = true
+        searchable = false
+        filterable = false
+        sortable = false
+        facetable = false
+        retrievable = true
+      },
+      {
+        name = "content"
+        type = "Edm.String"
+        key = false
+        searchable = true
+        filterable = false
+        sortable = false
+        facetable = false
+        retrievable = true
+      },
+      {
+        name = "title"
+        type = "Edm.String"
+        key = false
+        searchable = true
+        filterable = false
+        sortable = true
+        facetable = false
+        retrievable = true
+      },
+      {
+        name = "filepath"
+        type = "Edm.String"
+        key = false
+        searchable = true
+        filterable = false
+        sortable = false
+        facetable = false
+        retrievable = true
+      },
+      {
+        name = "url"
+        type = "Edm.String"
+        key = false
+        searchable = true
+        filterable = false
+        sortable = false
+        facetable = false
+        retrievable = true
+      },
+      {
+        name = "metadata_storage_path"
+        type = "Edm.String"
+        key = false
+        searchable = true
+        filterable = false
+        sortable = false
+        facetable = false
+        retrievable = true
+      }
+    ]
   }
 
   provider = azapi
   schema_validation_enabled = false
 
-  depends_on = [azurerm_search_service.ai_search]
+  # Make sure the search service is fully provisioned before creating the index
+  depends_on = [
+    azurerm_search_service.ai_search
+  ]
 }
