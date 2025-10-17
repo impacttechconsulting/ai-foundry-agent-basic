@@ -10,6 +10,7 @@ global using System.Text;
 global using System.Text.Encodings.Web;
 global using System.Text.Json;
 global using System.Text.Json.Serialization;
+global using AiFoundryAgent.Services;
 global using System.Threading.Tasks;
 global using AiFoundryAgent;
 global using AiFoundryAgent.Configuration;

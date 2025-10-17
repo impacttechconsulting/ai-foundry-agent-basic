@@ -77,6 +77,10 @@ if (!string.IsNullOrEmpty(azureAISearchSection["Endpoint"]) && !string.IsNullOrE
         // If configuration is not available, create a placeholder client (will not be used)
         return new SearchClient(new Uri("https://placeholder.search.windows.net"), "placeholder", new Azure.Identity.DefaultAzureCredential());
     });
+    
+    // Register the IndexerService with proper configuration
+    builder.Services.Configure<IndexerServiceSearchOptions>(builder.Configuration.GetSection("AzureAISearch"));
+    builder.Services.AddScoped<IIndexerService, IndexerService>();
 }
 
 builder.Services.AddControllersWithViews();

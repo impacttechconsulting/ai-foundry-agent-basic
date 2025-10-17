@@ -9,12 +9,16 @@ public class RagController(
     PersistentAgentsClient client,
     IOptionsMonitor<ChatApiOptions> options,
     ILogger<RagController> logger,
-    SearchClient? searchClient = null) : ControllerBase
+    SearchClient? searchClient = null,
+    BlobContainerClient? blobContainerClient = null,
+    IIndexerService? indexerService = null) : ControllerBase
 {
     private readonly PersistentAgentsClient _client = client;
     private readonly IOptionsMonitor<ChatApiOptions> _options = options;
     private readonly ILogger<RagController> _logger = logger;
     private readonly SearchClient? _searchClient = searchClient;
+    private readonly BlobContainerClient? _blobContainerClient = blobContainerClient;
+    private readonly IIndexerService? _indexerService = indexerService;
 
     [HttpPost("threads")]
     public async Task<IActionResult> CreateThread()
@@ -120,36 +124,59 @@ public class RagController(
 
         try
         {
-            // Process and store the file
-            var fileName = $"{Guid.NewGuid()}{fileExtension}";
-            var uploadPath = Path.Combine("wwwroot", "uploads", "rag-documents");
-            
-            // Create directory if it doesn't exist
-            if (!Directory.Exists(uploadPath))
+            // Check if BlobContainerClient is available
+            if (_blobContainerClient == null)
             {
-                Directory.CreateDirectory(uploadPath);
+                _logger.LogError("BlobContainerClient is not configured, cannot upload file to Azure Blob Storage");
+                return StatusCode(500, new { error = "Blob storage is not configured properly" });
             }
 
-            var filePath = Path.Combine(uploadPath, fileName);
+            // Generate a unique blob name with the original file extension
+            var blobName = $"{Guid.NewGuid()}{fileExtension}";
             
-            using (var fileStream = new FileStream(filePath, FileMode.Create))
+            // Upload file to Azure Blob Storage
+            using var fileStream = file.OpenReadStream();
+            var response = await _blobContainerClient.UploadBlobAsync(blobName, fileStream);
+
+            if (response != null)
             {
-                await file.CopyToAsync(fileStream);
+                _logger.LogInformation("File {FileName} uploaded to Azure Blob Storage with blob name {BlobName}", 
+                    file.FileName, blobName);
+
+                // Trigger the Azure AI Search indexer to process the uploaded document
+                if (_indexerService != null)
+                {
+                    var indexerName = "blob-document-indexer"; // Default indexer name
+                    var indexerTriggered = await _indexerService.RunIndexerAsync(indexerName);
+                    
+                    if (indexerTriggered)
+                    {
+                        _logger.LogInformation("Successfully triggered Azure AI Search indexer for blob {BlobName}", blobName);
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Failed to trigger Azure AI Search indexer for blob {BlobName}", blobName);
+                    }
+                }
+
+                // Return success response
+                var blobUrl = $"{_blobContainerClient.Uri}/{blobName}";
+                return Ok(new { 
+                    message = "File uploaded to Azure Blob Storage and indexer triggered successfully", 
+                    fileName = file.FileName,
+                    blobUrl = blobUrl 
+                });
             }
-
-            // Index the document in Azure AI Search
-            await IndexDocumentAsync(filePath, file.FileName);
-
-            return Ok(new { 
-                message = "File uploaded and indexed successfully", 
-                fileName = file.FileName,
-                fileUrl = $"/uploads/rag-documents/{fileName}" 
-            });
+            else
+            {
+                _logger.LogError("Failed to upload file {FileName} to Azure Blob Storage", file.FileName);
+                return StatusCode(500, new { error = "Failed to upload file to Azure Blob Storage" });
+            }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error occurred while uploading file {FileName}", file.FileName);
-            return StatusCode(500, new { error = "An error occurred while uploading the file" });
+            _logger.LogError(ex, "Error occurred while uploading file {FileName} to Azure Blob Storage", file.FileName);
+            return StatusCode(500, new { error = "An error occurred while uploading the file to Azure Blob Storage" });
         }
     }
 
@@ -213,147 +240,10 @@ public class RagController(
         return context;
     }
 
-    private async Task IndexDocumentAsync(string filePath, string originalFileName)
-    {
-        // Check if SearchClient is available
-        if (_searchClient == null)
-        {
-            _logger.LogWarning("SearchClient is not configured, skipping document indexing");
-            return;
-        }
+    // The IndexDocumentAsync method is no longer used since indexing is handled by Azure AI Search indexer
+    // The Azure AI Search indexer will automatically process documents in the blob container
 
-        try
-        {
-            // Extract text from the document based on file type
-            string documentText = await ExtractTextFromDocumentAsync(filePath);
-            
-            // Chunk the document content
-            var chunks = ChunkText(documentText, 1000); // 1000 character chunks
-            
-            // Index each chunk in Azure AI Search
-            var documentsToIndex = new List<SearchDocument>();
-            
-            for (int i = 0; i < chunks.Count; i++)
-            {
-                var documentId = $"{Path.GetFileNameWithoutExtension(filePath)}_{i}_{Guid.NewGuid()}";
-                
-                var searchDocument = new SearchDocument
-                {
-                    ["id"] = documentId,
-                    ["title"] = originalFileName,
-                    ["content"] = chunks[i],
-                    ["url"] = $"/uploads/rag-documents/{Path.GetFileName(filePath)}",
-                    ["metadata_storage_path"] = filePath
-                };
-                
-                documentsToIndex.Add(searchDocument);
-            }
-
-            // Upload documents to Azure AI Search
-            var batch = IndexDocumentsBatch.Upload(documentsToIndex);
-            var result = await _searchClient.IndexDocumentsAsync(batch);
-
-            if (result.Value.Results.Any(r => !r.Succeeded))
-            {
-                var failedDocs = result.Value.Results.Where(r => !r.Succeeded).Select(r => r.Key);
-                _logger.LogWarning("Failed to index some documents: {FailedDocumentIds}", string.Join(", ", failedDocs));
-            }
-            else
-            {
-                _logger.LogInformation("Successfully indexed {Count} document chunks to Azure AI Search", documentsToIndex.Count);
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error occurred while indexing document {FilePath} to Azure AI Search", filePath);
-            throw;
-        }
-    }
-
-    private async Task<string> ExtractTextFromDocumentAsync(string filePath)
-    {
-        var extension = Path.GetExtension(filePath).ToLowerInvariant();
-        
-        return extension switch
-        {
-            ".txt" => await System.IO.File.ReadAllTextAsync(filePath),
-            ".pdf" => await ExtractTextFromPdfAsync(filePath),
-            ".docx" => await ExtractTextFromDocxAsync(filePath),
-            _ => await ExtractTextFromGenericFileAsync(filePath)
-        };
-    }
-
-    private Task<string> ExtractTextFromPdfAsync(string filePath)
-    {
-        // For PDF extraction, we'd normally use a library like iTextSharp or PDFsharp
-        // For now, return a placeholder message about what would happen
-        _logger.LogWarning("PDF text extraction requires additional library (e.g., iTextSharp or PDFsharp). Using file name as placeholder content.");
-        return Task.FromResult($"Content from PDF file: {Path.GetFileName(filePath)} - Full content extraction requires PDF processing library.");
-    }
-
-    private Task<string> ExtractTextFromDocxAsync(string filePath)
-    {
-        // For DOCX extraction, we'd normally use a library like DocumentFormat.OpenXml
-        _logger.LogWarning("DOCX text extraction requires additional library (e.g., DocumentFormat.OpenXml). Using file name as placeholder content.");
-        return Task.FromResult($"Content from DOCX file: {Path.GetFileName(filePath)} - Full content extraction requires DOCX processing library.");
-    }
-
-    private async Task<string> ExtractTextFromGenericFileAsync(string filePath)
-    {
-        // For other file types, try to read as text
-        try
-        {
-            return await System.IO.File.ReadAllTextAsync(filePath);
-        }
-        catch
-        {
-            // If it's not a text file, return file name as placeholder
-            return $"Binary file: {Path.GetFileName(filePath)} - Content not extracted.";
-        }
-    }
-
-    private List<string> ChunkText(string text, int chunkSize)
-    {
-        var chunks = new List<string>();
-        
-        if (string.IsNullOrEmpty(text))
-            return chunks;
-
-        for (int i = 0; i < text.Length; i += chunkSize)
-        {
-            int currentChunkSize = Math.Min(chunkSize, text.Length - i);
-            string chunk = text.Substring(i, currentChunkSize);
-            
-            // Try to break at sentence or paragraph boundaries instead of mid-sentence
-            if (i + chunkSize < text.Length)
-            {
-                // Find the last sentence end within the chunk
-                int lastSentenceEnd = -1;
-                for (int j = chunkSize - 1; j > chunkSize - 200; j--) // Look in last 200 chars for sentence ends
-                {
-                    if (j < chunk.Length)
-                    {
-                        if (chunk[j] == '.' || chunk[j] == '!' || chunk[j] == '?' || chunk[j] == '\n')
-                        {
-                            lastSentenceEnd = j + 1;
-                            break;
-                        }
-                    }
-                }
-                
-                // If we found a good breaking point, use it
-                if (lastSentenceEnd > chunkSize * 0.7) // Only if it's not cutting too early
-                {
-                    chunk = text.Substring(i, lastSentenceEnd);
-                    i = i + lastSentenceEnd - 1; // Adjust i to continue from after the split
-                }
-            }
-            
-            chunks.Add(chunk);
-        }
-        
-        return chunks;
-    }
+    // Text extraction methods are no longer needed since Azure AI Search indexer handles this
 }
 
 
