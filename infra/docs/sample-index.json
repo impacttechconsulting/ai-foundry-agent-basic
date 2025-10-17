@@ -1,5 +1,5 @@
 {
-  "name": "ai-foundry-agent-index",
+  "name": "ai-foundry-rag-agent-index",
   "fields": [
     {
       "name": "id",

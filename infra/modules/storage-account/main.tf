@@ -9,6 +9,11 @@ resource "azurerm_storage_account" "rag_storage" {
   account_kind             = "StorageV2"
   https_traffic_only_enabled = true
   min_tls_version          = "TLS1_2"
+
+  # Enable managed identity for the storage account
+  identity {
+    type = "SystemAssigned"
+  }
 }
 
 # Create a container for documents

@@ -20,7 +20,8 @@ resource "azurerm_role_assignment" "app_service_storage_contributor" {
   principal_id         = module.app_service.app_service_principal_id
 
   depends_on = [
-    module.app_service
+    module.app_service,
+    module.storage_account
   ]
 }
 

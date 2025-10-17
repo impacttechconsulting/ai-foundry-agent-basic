@@ -48,7 +48,8 @@ resource "azurerm_linux_web_app" "main" {
       "AzureAISearch__UseManagedIdentity" = "true"
     } : {},
     var.storage_account_name != "" ? {
-      "StorageAccountName" = var.storage_account_name
+      "AzureStorage__AccountName" = var.storage_account_name
+      "AzureStorage__UseManagedIdentity" = "true"
     } : {}
   )
 }

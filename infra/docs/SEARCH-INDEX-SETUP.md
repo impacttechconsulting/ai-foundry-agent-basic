@@ -7,12 +7,12 @@ This Terraform configuration creates the necessary Azure infrastructure for the 
 - Role assignments for managed identity authentication
 
 ## Search Index Creation
-The search index named `ai-foundry-agent-index` needs to be created after the infrastructure is deployed. The application expects this index to exist with the following schema:
+The search index named `ai-foundry-rag-agent-index` needs to be created after the infrastructure is deployed. The application expects this index to exist with the following schema:
 
 ### Required Index Schema
 ```
 {
-  "name": "ai-foundry-agent-index",
+  "name": "ai-foundry-rag-agent-index",
   "fields": [
     {
       "name": "id",
@@ -123,7 +123,7 @@ SEARCH_KEY=$(az search admin-key show --service-name ai-foundry-agent-search --r
 az search index create \
   --resource-group ai-foundry-agent-rg \
   --service-name ai-foundry-agent-search \
-  --name ai-foundry-agent-index \
+  --name ai-foundry-rag-agent-index \
   --indexes 'PASTE_THE_SCHEMA_JSON_ABOVE' \
   --query-key $SEARCH_KEY
 ```
@@ -132,13 +132,13 @@ az search index create \
 The application is configured to use managed identity authentication to access Azure AI Search:
 
 - Endpoint: https://ai-foundry-agent-search.search.windows.net
-- Index name: ai-foundry-agent-index
+- Index name: ai-foundry-rag-agent-index
 - Authentication: Managed Identity (enabled via `AzureAISearch__UseManagedIdentity=true`)
 
 ## Application Configuration
 The App Service is configured with these environment variables:
 - `AzureAISearch__Endpoint`: The search service endpoint
-- `AzureAISearch__IndexName`: `ai-foundry-agent-index`
+- `AzureAISearch__IndexName`: `ai-foundry-rag-agent-index`
 - `AzureAISearch__UseManagedIdentity`: `true` (for managed identity authentication)
 
 With this setup, the application will be able to connect to the Azure AI Search service once the index is created.

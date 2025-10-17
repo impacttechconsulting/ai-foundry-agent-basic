@@ -20,18 +20,31 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
       - name: Set up .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: Restore dependencies
+      - name: Restore client dependencies
+        run: npm install
+        working-directory: src/client-app
+
+      - name: Build client app
+        run: npm run build
+        working-directory: src/client-app
+
+      - name: Restore .NET dependencies
         run: dotnet restore
 
-      - name: Build
+      - name: Build .NET application
         run: dotnet build --no-restore --configuration Release
 
-      - name: Test
+      - name: Test .NET application
         run: dotnet test --no-build --configuration Release --verbosity normal
 
       - name: Publish

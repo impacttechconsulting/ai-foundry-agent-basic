@@ -146,7 +146,24 @@ public class RagController(
                 // Trigger the Azure AI Search indexer to process the uploaded document
                 if (_indexerService != null)
                 {
-                    var indexerName = "blob-document-indexer"; // Default indexer name
+                    const string indexerName = "blob-document-indexer"; // Consistent indexer name
+                    
+                    // Check if indexer exists before attempting to run it
+                    var indexerExists = await _indexerService.CheckIndexerExistsAsync(indexerName);
+                    
+                    if (!indexerExists)
+                    {
+                        _logger.LogError("Indexer {IndexerName} does not exist in Azure AI Search service. " +
+                            "The automated setup may not have completed successfully.", indexerName);
+                        
+                        // Return a more informative error message to the client
+                        return StatusCode(500, new { 
+                            error = $"Indexer '{indexerName}' not found in Azure AI Search service. " +
+                                   "The application attempted to create this automatically but the setup may have failed. " +
+                                   "Please check application logs for more information."
+                        });
+                    }
+                    
                     var indexerTriggered = await _indexerService.RunIndexerAsync(indexerName);
                     
                     if (indexerTriggered)
@@ -157,6 +174,10 @@ public class RagController(
                     {
                         _logger.LogWarning("Failed to trigger Azure AI Search indexer for blob {BlobName}", blobName);
                     }
+                }
+                else
+                {
+                    _logger.LogWarning("IndexerService is not available, cannot trigger Azure AI Search indexer");
                 }
 
                 // Return success response

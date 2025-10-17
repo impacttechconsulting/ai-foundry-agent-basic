@@ -9,7 +9,7 @@ variable "search_service_name" {
 variable "search_index_name" {
   description = "Name of the search index to create"
   type        = string
-  default     = "ai-foundry-agent-index"
+  default     = "ai-foundry-rag-agent-index"
 }
 
 variable "resource_group_name" {

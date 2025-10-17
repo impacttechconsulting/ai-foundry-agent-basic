@@ -9,8 +9,10 @@ namespace AiFoundryAgent.Services;
 public interface IIndexerService
 {
     Task<bool> RunIndexerAsync(string indexerName);
-    Task<bool> CreateOrUpdateDataSourceConnectionAsync(string dataSourceName, string storageConnectionString, string containerName);
+    Task<bool> CreateOrUpdateDataSourceConnectionAsync(string dataSourceName, string storageConnectionString, string containerName, bool useManagedIdentity = false);
     Task<bool> CreateOrUpdateIndexerAsync(string indexerName, string dataSourceName, string indexName);
+    Task<bool> CheckIndexerExistsAsync(string indexerName);
+    Task<bool> CheckDataSourceExistsAsync(string dataSourceName);
 }
 
 public class IndexerService : IIndexerService
@@ -60,19 +62,38 @@ public class IndexerService : IIndexerService
         }
     }
 
-    public async Task<bool> CreateOrUpdateDataSourceConnectionAsync(string dataSourceName, string storageConnectionString, string containerName)
+    public async Task<bool> CreateOrUpdateDataSourceConnectionAsync(string dataSourceName, string storageConnectionString, string containerName, bool useManagedIdentity = false)
     {
         try
         {
             var dataSourceUri = $"{_searchEndpoint.TrimEnd('/')}/datasources('{dataSourceName}')?api-version=2023-10-01-Preview";
             
-            var dataSource = new
+            object dataSource;
+            if (useManagedIdentity)
             {
-                name = dataSourceName,
-                type = "azureblob",
-                connectionString = storageConnectionString,
-                container = new { name = containerName }
-            };
+                // For managed identity, we use a different approach
+                // The @odata.type syntax needs to be handled differently in C# anonymous types
+                var dataSourceDict = new Dictionary<string, object>
+                {
+                    ["name"] = dataSourceName,
+                    ["type"] = "azureblob",
+                    ["credentials"] = new { connectionString = "" }, // Empty for managed identity
+                    ["container"] = new { name = containerName },
+                    ["@odata.type"] = "#Microsoft.Azure.Search.DataStoreIdentity.UseManagedIdentity"
+                };
+                dataSource = dataSourceDict;
+            }
+            else
+            {
+                // Use connection string approach - credentials need to be nested properly
+                dataSource = new
+                {
+                    name = dataSourceName,
+                    type = "azureblob",
+                    credentials = new { connectionString = storageConnectionString },
+                    container = new { name = containerName }
+                };
+            }
 
             var jsonContent = JsonSerializer.Serialize(dataSource, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
             var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
@@ -154,6 +175,42 @@ public class IndexerService : IIndexerService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error occurred while creating or updating indexer {IndexerName}", indexerName);
+            return false;
+        }
+    }
+
+    public async Task<bool> CheckIndexerExistsAsync(string indexerName)
+    {
+        try
+        {
+            var requestUri = $"{_searchEndpoint.TrimEnd('/')}/indexers('{indexerName}')?api-version=2023-10-01-Preview";
+            
+            using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
+            var response = await _httpClient.SendAsync(request);
+            
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while checking if indexer {IndexerName} exists", indexerName);
+            return false;
+        }
+    }
+
+    public async Task<bool> CheckDataSourceExistsAsync(string dataSourceName)
+    {
+        try
+        {
+            var requestUri = $"{_searchEndpoint.TrimEnd('/')}/datasources('{dataSourceName}')?api-version=2023-10-01-Preview";
+            
+            using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
+            var response = await _httpClient.SendAsync(request);
+            
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while checking if data source {DataSourceName} exists", dataSourceName);
             return false;
         }
     }

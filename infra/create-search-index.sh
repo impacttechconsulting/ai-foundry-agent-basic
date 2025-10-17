@@ -6,7 +6,7 @@
 # 2. Terraform has been applied successfully
 # 3. The search service "ai-foundry-agent-search" exists
 
-echo "Creating Azure AI Search index: ai-foundry-agent-index"
+echo "Creating Azure AI Search index: ai-foundry-rag-agent-index"
 
 # Get the resource group name (you may need to adjust this based on your actual resource group)
 RESOURCE_GROUP="ai-foundry-agent-rg"
@@ -18,7 +18,7 @@ ADMIN_KEY=$(az search admin-key show --service-name $SEARCH_SERVICE --resource-g
 # Define the index schema
 INDEX_SCHEMA=$(cat <<EOF
 {
-  "name": "ai-foundry-agent-index",
+  "name": "ai-foundry-rag-agent-index",
   "fields": [
     {
       "name": "id",
@@ -121,8 +121,8 @@ EOF
 az search index create \
   --resource-group $RESOURCE_GROUP \
   --service-name $SEARCH_SERVICE \
-  --name "ai-foundry-agent-index" \
+  --name "ai-foundry-rag-agent-index" \
   --indexes "$INDEX_SCHEMA"
 
-echo "Search index 'ai-foundry-agent-index' created successfully!"
+echo "Search index 'ai-foundry-rag-agent-index' created successfully!"
 echo "The application is now ready to use Azure AI Search."

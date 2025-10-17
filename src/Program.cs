@@ -80,7 +80,10 @@ if (!string.IsNullOrEmpty(azureAISearchSection["Endpoint"]) && !string.IsNullOrE
     
     // Register the IndexerService with proper configuration
     builder.Services.Configure<IndexerServiceSearchOptions>(builder.Configuration.GetSection("AzureAISearch"));
-    builder.Services.AddScoped<IIndexerService, IndexerService>();
+    builder.Services.AddSingleton<IIndexerService, IndexerService>();
+    
+    // Register the AzureSearchSetupService as a hosted service to run during startup
+    builder.Services.AddHostedService<AzureSearchSetupService>();
 }
 
 builder.Services.AddControllersWithViews();
