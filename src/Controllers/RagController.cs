@@ -283,19 +283,19 @@ public class RagController(
         };
     }
 
-    private async Task<string> ExtractTextFromPdfAsync(string filePath)
+    private Task<string> ExtractTextFromPdfAsync(string filePath)
     {
         // For PDF extraction, we'd normally use a library like iTextSharp or PDFsharp
         // For now, return a placeholder message about what would happen
         _logger.LogWarning("PDF text extraction requires additional library (e.g., iTextSharp or PDFsharp). Using file name as placeholder content.");
-        return $"Content from PDF file: {Path.GetFileName(filePath)} - Full content extraction requires PDF processing library.";
+        return Task.FromResult($"Content from PDF file: {Path.GetFileName(filePath)} - Full content extraction requires PDF processing library.");
     }
 
-    private async Task<string> ExtractTextFromDocxAsync(string filePath)
+    private Task<string> ExtractTextFromDocxAsync(string filePath)
     {
         // For DOCX extraction, we'd normally use a library like DocumentFormat.OpenXml
         _logger.LogWarning("DOCX text extraction requires additional library (e.g., DocumentFormat.OpenXml). Using file name as placeholder content.");
-        return $"Content from DOCX file: {Path.GetFileName(filePath)} - Full content extraction requires DOCX processing library.";
+        return Task.FromResult($"Content from DOCX file: {Path.GetFileName(filePath)} - Full content extraction requires DOCX processing library.");
     }
 
     private async Task<string> ExtractTextFromGenericFileAsync(string filePath)
