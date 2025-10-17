@@ -6,6 +6,10 @@ resource "azurerm_role_assignment" "app_service_application_insights_contributor
   scope                = module.optional_resources.app_insights_id  # This references the module output in main.tf
   role_definition_name = "Application Insights Component Contributor"
   principal_id         = module.app_service.app_service_principal_id
+
+  depends_on = [
+    module.app_service
+  ]
 }
 
 # Allow App Service to read Application Insights data
@@ -14,6 +18,10 @@ resource "azurerm_role_assignment" "app_service_application_insights_reader" {
   scope                = module.optional_resources.app_insights_id
   role_definition_name = "Application Insights Reader"
   principal_id         = module.app_service.app_service_principal_id
+
+  depends_on = [
+    module.app_service
+  ]
 }
 
 # Allow App Service to manage Application Insights workbooks
@@ -22,4 +30,8 @@ resource "azurerm_role_assignment" "app_service_application_insights_workbook_co
   scope                = module.optional_resources.app_insights_id
   role_definition_name = "Application Insights Workbooks Contributor"
   principal_id         = module.app_service.app_service_principal_id
+
+  depends_on = [
+    module.app_service
+  ]
 }
