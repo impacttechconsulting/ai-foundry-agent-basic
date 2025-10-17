@@ -2,6 +2,7 @@ using AiFoundryAgent.Configuration;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.StaticFiles;
 using Azure.Search.Documents;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,6 +26,9 @@ builder.Services.AddOptions<ChatApiOptions>()
     .Bind(builder.Configuration)
     .ValidateDataAnnotations()
     .ValidateOnStart();
+
+// Add Azure Storage services with proper configuration
+builder.Services.AddAzureStorageServices(builder.Configuration);
 
 builder.Services.AddSingleton((provider) =>
 {
