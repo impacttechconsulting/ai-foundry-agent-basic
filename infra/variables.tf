@@ -25,19 +25,19 @@ variable "app_service_name" {
 variable "app_service_sku" {
   description = "SKU for the App Service Plan (B1=B1 Basic - lowest cost for Linux, S1=Standard, P1=Premium)"
   type        = string
-  default     = "B1" # Basic tier - lowest cost for Linux
+  default     = "F1" # Free tier
 }
 
 variable "ai_project_endpoint" {
   description = "Azure AI Project endpoint"
   type        = string
-  default     = ""
+  default     = "https://impac-mgnvazjq-eastus2.services.ai.azure.com/api/projects/impact-ai-foundry-project"
 }
 
 variable "ai_agent_id" {
   description = "AI Agent ID"
   type        = string
-  default     = ""
+  default     = "asst_OHueTDrq9jpp37QlgtXHPzwk"
 }
 
 variable "ai_project_name" {
