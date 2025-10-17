@@ -31,13 +31,13 @@ variable "app_service_sku" {
 variable "ai_project_endpoint" {
   description = "Azure AI Project endpoint"
   type        = string
-  default     = "https://impac-mgnvazjq-eastus2.services.ai.azure.com/api/projects/impact-ai-foundry-project"
+  default     = "https://impact-azure-ai-foundry.services.ai.azure.com/api/projects/impact-ai-foundry-project"
 }
 
 variable "ai_agent_id" {
   description = "AI Agent ID"
   type        = string
-  default     = "asst_OHueTDrq9jpp37QlgtXHPzwk"
+  default     = "asst_QNfpc9danMOAjcqlo3dGcJ8Y"
 }
 
 variable "ai_project_name" {

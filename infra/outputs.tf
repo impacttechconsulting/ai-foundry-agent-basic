@@ -46,3 +46,8 @@ output "app_insights_id" {
   value       = module.optional_resources.app_insights_id
   description = "The resource ID of the Application Insights (if created)"
 }
+
+output "search_index_name" {
+  value       = module.ai_search.search_index_name
+  description = "The name of the search index created in the Azure AI Search service"
+}

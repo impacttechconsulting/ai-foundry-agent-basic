@@ -44,4 +44,5 @@ module "ai_search" {
   location            = var.location
   search_service_name = var.search_service_name
   search_service_sku  = var.search_service_sku
+  search_index_name   = var.search_index_name
 }

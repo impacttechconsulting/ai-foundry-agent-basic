@@ -6,6 +6,12 @@ variable "search_service_name" {
   default     = "ai-foundry-agent-search"
 }
 
+variable "search_index_name" {
+  description = "Name of the search index to create"
+  type        = string
+  default     = "ai-foundry-agent-index"
+}
+
 variable "resource_group_name" {
   description = "Name of the resource group to deploy the search service in"
   type        = string
