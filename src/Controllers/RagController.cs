@@ -1,5 +1,3 @@
-
-
 namespace AiFoundryAgent.Controllers;
 
 [ApiController]

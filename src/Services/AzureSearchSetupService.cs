@@ -74,8 +74,8 @@ public class AzureSearchSetupService : IAzureSearchSetupService, IHostedService
             
             if (string.IsNullOrEmpty(searchIndexName))
             {
-                _logger.LogWarning("Azure AI Search IndexName is not configured. Using default 'documents' index.");
-                searchIndexName = "documents"; // Default fallback
+                _logger.LogWarning("Azure AI Search IndexName is not configured. Using default 'ai-foundry-rag-agent-index' index.");
+                searchIndexName = "ai-foundry-rag-agent-index";
             }
 
             // Create or update the indexer

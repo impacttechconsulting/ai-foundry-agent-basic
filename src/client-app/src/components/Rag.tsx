@@ -459,8 +459,8 @@ const RagDemo: React.FC = () => {
                                 <DocumentIcon fontSize="small" />
                               </ListItemIcon>
                               <ListItemText 
-                                primary={source.Title} 
-                                secondary={source.Content.substring(0, 100) + (source.Content.length > 100 ? '...' : '')}
+                                primary={source.Title || 'Untitled Document'} 
+                                secondary={(source.Content || '').substring(0, 100) + ((source.Content || '').length > 100 ? '...' : '')}
                                 primaryTypographyProps={{ variant: 'caption', fontWeight: 'medium' }}
                                 secondaryTypographyProps={{ variant: 'caption' }}
                               />

@@ -23,7 +23,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build && xcopy /E /I /Y \"build\\*\" \"..\\\\wwwroot\\\\\"",
+    "build": "react-scripts build && npx cpy 'build/**/*' '../wwwroot/' --recursive",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
@@ -45,5 +45,9 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "cpy-cli": "^6.0.0",
+    "fs-extra-cli": "^0.0.4"
   }
 }
