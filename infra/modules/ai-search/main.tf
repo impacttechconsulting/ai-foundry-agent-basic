@@ -15,77 +15,79 @@ resource "azurerm_search_service" "ai_search" {
 
 # Create the search index within the search service
 resource "azapi_resource" "search_index" {
-  type      = "Microsoft.Search/searchServices/indexes@2023-11-01"
+  type      = "Microsoft.Search/searchServices/indexes@2023-10-01-Preview"
   name      = var.search_index_name
   parent_id = azurerm_search_service.ai_search.id
 
-  body = jsonencode({
-    "name" : var.search_index_name,
-    "fields" : [
-      {
-        "name": "id",
-        "type": "Edm.String",
-        "key": true,
-        "searchable": false,
-        "filterable": false,
-        "sortable": false,
-        "facetable": false,
-        "retrievable": true
-      },
-      {
-        "name": "content",
-        "type": "Edm.String",
-        "key": false,
-        "searchable": true,
-        "filterable": false,
-        "sortable": false,
-        "facetable": false,
-        "retrievable": true
-      },
-      {
-        "name": "title",
-        "type": "Edm.String",
-        "key": false,
-        "searchable": true,
-        "filterable": false,
-        "sortable": true,
-        "facetable": false,
-        "retrievable": true
-      },
-      {
-        "name": "filepath",
-        "type": "Edm.String",
-        "key": false,
-        "searchable": true,
-        "filterable": false,
-        "sortable": false,
-        "facetable": false,
-        "retrievable": true
-      },
-      {
-        "name": "url",
-        "type": "Edm.String",
-        "key": false,
-        "searchable": true,
-        "filterable": false,
-        "sortable": false,
-        "facetable": false,
-        "retrievable": true
-      },
-      {
-        "name": "metadata_storage_path",
-        "type": "Edm.String",
-        "key": false,
-        "searchable": true,
-        "filterable": false,
-        "sortable": false,
-        "facetable": false,
-        "retrievable": true
-      }
-    ]
-  })
+  body = {
+    properties = {
+      fields = [
+        {
+          name = "id"
+          type = "Edm.String"
+          key = true
+          searchable = false
+          filterable = false
+          sortable = false
+          facetable = false
+          retrievable = true
+        },
+        {
+          name = "content"
+          type = "Edm.String"
+          key = false
+          searchable = true
+          filterable = false
+          sortable = false
+          facetable = false
+          retrievable = true
+        },
+        {
+          name = "title"
+          type = "Edm.String"
+          key = false
+          searchable = true
+          filterable = false
+          sortable = true
+          facetable = false
+          retrievable = true
+        },
+        {
+          name = "filepath"
+          type = "Edm.String"
+          key = false
+          searchable = true
+          filterable = false
+          sortable = false
+          facetable = false
+          retrievable = true
+        },
+        {
+          name = "url"
+          type = "Edm.String"
+          key = false
+          searchable = true
+          filterable = false
+          sortable = false
+          facetable = false
+          retrievable = true
+        },
+        {
+          name = "metadata_storage_path"
+          type = "Edm.String"
+          key = false
+          searchable = true
+          filterable = false
+          sortable = false
+          facetable = false
+          retrievable = true
+        }
+      ]
+    }
+  }
 
   provider = azapi
+  schema_validation_enabled = false
 
   depends_on = [azurerm_search_service.ai_search]
 }
