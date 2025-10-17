@@ -15,7 +15,7 @@ resource "azurerm_search_service" "ai_search" {
 
 # Create the search index within the search service
 resource "azapi_resource" "search_index" {
-  type      = "Microsoft.Search/searchServices/indexes@2023-10-01-Preview"
+  type      = "Microsoft.Search/searchServices/indexes@2023-11-01"
   name      = var.search_index_name
   parent_id = azurerm_search_service.ai_search.id
 
