@@ -1,6 +1,7 @@
 using AiFoundryAgent.Configuration;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.StaticFiles;
+using Azure.Search.Documents;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,6 +33,31 @@ builder.Services.AddSingleton((provider) =>
     PersistentAgentsClient client = new(config.AIProjectEndpoint, new DefaultAzureCredential());
     return client;
 });
+
+// Configure Azure AI Search client if configuration exists
+var azureAISearchSection = builder.Configuration.GetSection("AzureAISearch");
+if (!string.IsNullOrEmpty(azureAISearchSection["Endpoint"]) && !string.IsNullOrEmpty(azureAISearchSection["IndexName"]))
+{
+    builder.Services.AddSingleton(provider =>
+    {
+        var config = provider.GetRequiredService<IConfiguration>();
+        var searchEndpoint = config["AzureAISearch:Endpoint"];
+        var searchIndexName = config["AzureAISearch:IndexName"];
+        var searchApiKey = config["AzureAISearch:ApiKey"];
+        
+        if (!string.IsNullOrEmpty(searchEndpoint) && !string.IsNullOrEmpty(searchIndexName))
+        {
+            var searchClient = new SearchClient(
+                new Uri(searchEndpoint),
+                searchIndexName,
+                new Azure.AzureKeyCredential(searchApiKey ?? ""));
+                
+            return searchClient;
+        }
+        
+        return null; // Will be handled gracefully in controller
+    });
+}
 
 builder.Services.AddControllersWithViews();
 
