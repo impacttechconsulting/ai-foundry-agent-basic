@@ -22,6 +22,9 @@ module "app_service" {
   ai_agent_id                      = var.ai_agent_id
   key_vault_url                    = module.optional_resources.key_vault_url
   app_insights_instrumentation_key = module.optional_resources.app_insights_instrumentation_key
+  search_service_endpoint          = module.ai_search.search_service_endpoint
+  search_service_admin_key         = module.ai_search.search_service_admin_key
+  search_index_name                = var.search_index_name
 }
 
 # Call optional resources module
@@ -36,9 +39,9 @@ module "optional_resources" {
 
 # Call AI Search module
 module "ai_search" {
-  source                    = "./modules/ai-search"
-  resource_group_name       = module.resource_group.resource_group_name
-  location                  = var.location
-  search_service_name       = var.search_service_name
-  search_service_sku        = var.search_service_sku
+  source              = "./modules/ai-search"
+  resource_group_name = module.resource_group.resource_group_name
+  location            = var.location
+  search_service_name = var.search_service_name
+  search_service_sku  = var.search_service_sku
 }

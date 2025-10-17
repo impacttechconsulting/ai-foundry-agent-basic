@@ -14,6 +14,10 @@ resource "azurerm_linux_web_app" "main" {
   location            = var.location
   service_plan_id     = azurerm_service_plan.main.id
 
+  identity {
+    type = "SystemAssigned"
+  }
+
   site_config {
     application_stack {
       dotnet_version = "8.0"
@@ -36,6 +40,12 @@ resource "azurerm_linux_web_app" "main" {
     } : {},
     var.app_insights_instrumentation_key != "" ? {
       "APPLICATIONINSIGHTS_CONNECTION_STRING" = "InstrumentationKey=${var.app_insights_instrumentation_key}"
+    } : {},
+    var.search_service_endpoint != "" ? {
+      "AzureAISearch__Endpoint" = var.search_service_endpoint
+      "AzureAISearch__IndexName" = var.search_index_name
+      # Using managed identity for authentication instead of API key
+      "AzureAISearch__UseManagedIdentity" = "true"
     } : {}
   )
 }
@@ -47,4 +57,8 @@ output "app_service_url" {
 
 output "app_service_id" {
   value = azurerm_linux_web_app.main.id
+}
+
+output "app_service_principal_id" {
+  value = azurerm_linux_web_app.main.identity[0].principal_id
 }

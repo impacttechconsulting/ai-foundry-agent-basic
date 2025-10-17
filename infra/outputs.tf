@@ -31,3 +31,18 @@ output "search_service_name" {
   value       = module.ai_search.search_service_name
   description = "The name of the Azure AI Search service"
 }
+
+output "search_service_id" {
+  value       = module.ai_search.search_service_id
+  description = "The resource ID of the Azure AI Search service"
+}
+
+output "app_service_principal_id" {
+  value       = module.app_service.app_service_principal_id
+  description = "The principal ID of the App Service managed identity"
+}
+
+output "app_insights_id" {
+  value       = module.optional_resources.app_insights_id
+  description = "The resource ID of the Application Insights (if created)"
+}

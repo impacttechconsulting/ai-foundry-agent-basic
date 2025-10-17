@@ -67,5 +67,11 @@ variable "search_service_name" {
 variable "search_service_sku" {
   description = "SKU for the Azure AI Search service (free, basic, standard, etc.)"
   type        = string
-  default     = "free"  # Free tier allows up to 50 MB of data
+  default     = "basic"
+}
+
+variable "search_index_name" {
+  description = "Name of the Azure AI Search index to use"
+  type        = string
+  default     = "ai-foundry-agent-index"
 }

@@ -39,3 +39,8 @@ output "app_insights_instrumentation_key" {
   description = "Application Insights instrumentation key (empty if not created)"
   sensitive = true
 }
+
+output "app_insights_id" {
+  value = var.application_insights_name != "" ? azurerm_application_insights.main[0].id : ""
+  description = "Application Insights resource ID (empty if not created)"
+}

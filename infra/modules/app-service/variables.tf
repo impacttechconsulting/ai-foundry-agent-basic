@@ -44,3 +44,21 @@ variable "key_vault_url" {
   type        = string
   default     = ""
 }
+
+variable "search_service_endpoint" {
+  description = "Azure AI Search service endpoint (optional)"
+  type        = string
+  default     = ""
+}
+
+variable "search_service_admin_key" {
+  description = "Azure AI Search service admin key (optional)"
+  type        = string
+  default     = ""
+}
+
+variable "search_index_name" {
+  description = "Name of the Azure AI Search index to use (optional)"
+  type        = string
+  default     = ""
+}

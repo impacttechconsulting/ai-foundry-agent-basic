@@ -43,20 +43,35 @@ if (!string.IsNullOrEmpty(azureAISearchSection["Endpoint"]) && !string.IsNullOrE
         var config = provider.GetRequiredService<IConfiguration>();
         var searchEndpoint = config["AzureAISearch:Endpoint"];
         var searchIndexName = config["AzureAISearch:IndexName"];
-        var searchApiKey = config["AzureAISearch:ApiKey"];
+        var useManagedIdentity = config["AzureAISearch:UseManagedIdentity"] == "true";
         
         if (!string.IsNullOrEmpty(searchEndpoint) && !string.IsNullOrEmpty(searchIndexName))
         {
-            var searchClient = new SearchClient(
-                new Uri(searchEndpoint),
-                searchIndexName,
-                new Azure.AzureKeyCredential(searchApiKey ?? ""));
+            if (useManagedIdentity)
+            {
+                // Use managed identity for authentication
+                var searchClient = new SearchClient(
+                    new Uri(searchEndpoint),
+                    searchIndexName,
+                    new Azure.Identity.DefaultAzureCredential());
                 
-            return searchClient;
+                return searchClient;
+            }
+            else
+            {
+                // Use API key for authentication (fallback)
+                var searchApiKey = config["AzureAISearch:ApiKey"];
+                var searchClient = new SearchClient(
+                    new Uri(searchEndpoint),
+                    searchIndexName,
+                    new Azure.AzureKeyCredential(searchApiKey ?? ""));
+                
+                return searchClient;
+            }
         }
         
         // If configuration is not available, create a placeholder client (will not be used)
-        return new SearchClient(new Uri("https://placeholder.search.windows.net"), "placeholder", new AzureKeyCredential("placeholder"));
+        return new SearchClient(new Uri("https://placeholder.search.windows.net"), "placeholder", new Azure.Identity.DefaultAzureCredential());
     });
 }
 

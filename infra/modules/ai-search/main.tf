@@ -31,3 +31,9 @@ output "search_service_name" {
   value       = azurerm_search_service.ai_search.name
   description = "The name of the Azure AI Search service"
 }
+
+# Output the search service ID
+output "search_service_id" {
+  value       = azurerm_search_service.ai_search.id
+  description = "The resource ID of the Azure AI Search service"
+}
