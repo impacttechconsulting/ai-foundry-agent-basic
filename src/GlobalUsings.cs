@@ -23,6 +23,7 @@ global using Azure.Search.Documents.Indexes;
 global using Azure.Search.Documents.Indexes.Models;
 global using Azure.Search.Documents.Models;
 global using Azure.Storage.Blobs;
+
 global using Microsoft.AspNetCore.Authentication;
 global using Microsoft.AspNetCore.Authentication.Cookies;
 global using Microsoft.AspNetCore.Authorization;

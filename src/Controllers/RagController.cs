@@ -215,14 +215,144 @@ public class RagController(
 
     private async Task IndexDocumentAsync(string filePath, string originalFileName)
     {
-        // This is a placeholder implementation
-        // In a real implementation, you would:
-        // 1. Extract text from the document (using libraries like iTextSharp for PDFs)
-        // 2. Chunk the document content
-        // 3. Index the content in Azure AI Search
+        // Check if SearchClient is available
+        if (_searchClient == null)
+        {
+            _logger.LogWarning("SearchClient is not configured, skipping document indexing");
+            return;
+        }
+
+        try
+        {
+            // Extract text from the document based on file type
+            string documentText = await ExtractTextFromDocumentAsync(filePath);
+            
+            // Chunk the document content
+            var chunks = ChunkText(documentText, 1000); // 1000 character chunks
+            
+            // Index each chunk in Azure AI Search
+            var documentsToIndex = new List<SearchDocument>();
+            
+            for (int i = 0; i < chunks.Count; i++)
+            {
+                var documentId = $"{Path.GetFileNameWithoutExtension(filePath)}_{i}_{Guid.NewGuid()}";
+                
+                var searchDocument = new SearchDocument
+                {
+                    ["id"] = documentId,
+                    ["title"] = originalFileName,
+                    ["content"] = chunks[i],
+                    ["url"] = $"/uploads/rag-documents/{Path.GetFileName(filePath)}",
+                    ["metadata_storage_path"] = filePath
+                };
+                
+                documentsToIndex.Add(searchDocument);
+            }
+
+            // Upload documents to Azure AI Search
+            var batch = IndexDocumentsBatch.Upload(documentsToIndex);
+            var result = await _searchClient.IndexDocumentsAsync(batch);
+
+            if (result.Value.Results.Any(r => !r.Succeeded))
+            {
+                var failedDocs = result.Value.Results.Where(r => !r.Succeeded).Select(r => r.Key);
+                _logger.LogWarning("Failed to index some documents: {FailedDocumentIds}", string.Join(", ", failedDocs));
+            }
+            else
+            {
+                _logger.LogInformation("Successfully indexed {Count} document chunks to Azure AI Search", documentsToIndex.Count);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while indexing document {FilePath} to Azure AI Search", filePath);
+            throw;
+        }
+    }
+
+    private async Task<string> ExtractTextFromDocumentAsync(string filePath)
+    {
+        var extension = Path.GetExtension(filePath).ToLowerInvariant();
         
-        await Task.Delay(1); // Add a small delay to make method truly async
-        _logger.LogInformation("Document indexing not fully implemented - would normally index {FilePath}", filePath);
+        return extension switch
+        {
+            ".txt" => await System.IO.File.ReadAllTextAsync(filePath),
+            ".pdf" => await ExtractTextFromPdfAsync(filePath),
+            ".docx" => await ExtractTextFromDocxAsync(filePath),
+            _ => await ExtractTextFromGenericFileAsync(filePath)
+        };
+    }
+
+    private async Task<string> ExtractTextFromPdfAsync(string filePath)
+    {
+        // For PDF extraction, we'd normally use a library like iTextSharp or PDFsharp
+        // For now, return a placeholder message about what would happen
+        _logger.LogWarning("PDF text extraction requires additional library (e.g., iTextSharp or PDFsharp). Using file name as placeholder content.");
+        return $"Content from PDF file: {Path.GetFileName(filePath)} - Full content extraction requires PDF processing library.";
+    }
+
+    private async Task<string> ExtractTextFromDocxAsync(string filePath)
+    {
+        // For DOCX extraction, we'd normally use a library like DocumentFormat.OpenXml
+        _logger.LogWarning("DOCX text extraction requires additional library (e.g., DocumentFormat.OpenXml). Using file name as placeholder content.");
+        return $"Content from DOCX file: {Path.GetFileName(filePath)} - Full content extraction requires DOCX processing library.";
+    }
+
+    private async Task<string> ExtractTextFromGenericFileAsync(string filePath)
+    {
+        // For other file types, try to read as text
+        try
+        {
+            return await System.IO.File.ReadAllTextAsync(filePath);
+        }
+        catch
+        {
+            // If it's not a text file, return file name as placeholder
+            return $"Binary file: {Path.GetFileName(filePath)} - Content not extracted.";
+        }
+    }
+
+    private List<string> ChunkText(string text, int chunkSize)
+    {
+        var chunks = new List<string>();
+        
+        if (string.IsNullOrEmpty(text))
+            return chunks;
+
+        for (int i = 0; i < text.Length; i += chunkSize)
+        {
+            int currentChunkSize = Math.Min(chunkSize, text.Length - i);
+            string chunk = text.Substring(i, currentChunkSize);
+            
+            // Try to break at sentence or paragraph boundaries instead of mid-sentence
+            if (i + chunkSize < text.Length)
+            {
+                // Find the last sentence end within the chunk
+                int lastSentenceEnd = -1;
+                for (int j = chunkSize - 1; j > chunkSize - 200; j--) // Look in last 200 chars for sentence ends
+                {
+                    if (j < chunk.Length)
+                    {
+                        if (chunk[j] == '.' || chunk[j] == '!' || chunk[j] == '?' || chunk[j] == '\n')
+                        {
+                            lastSentenceEnd = j + 1;
+                            break;
+                        }
+                    }
+                }
+                
+                // If we found a good breaking point, use it
+                if (lastSentenceEnd > chunkSize * 0.7) // Only if it's not cutting too early
+                {
+                    chunk = text.Substring(i, lastSentenceEnd);
+                    i = i + lastSentenceEnd - 1; // Adjust i to continue from after the split
+                }
+            }
+            
+            chunks.Add(chunk);
+        }
+        
+        return chunks;
     }
 }
 
