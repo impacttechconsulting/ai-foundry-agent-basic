@@ -82,15 +82,19 @@ public class RagController(
                 .SelectMany(m => m.ContentItems.OfType<MessageTextContent>())
                 .LastOrDefault()?.Text ?? "No response generated";
 
-            // Return both the answer and source documents
+            // Return both the answer and source documents (only if there are relevant results)
+            var relevantSources = searchResults.Where(r => !string.IsNullOrEmpty(r.Title) || !string.IsNullOrEmpty(r.Summary)).ToList();
+            var sourcesData = relevantSources.Select(r => new { 
+                r.Title, 
+                Content = r.Summary,
+                r.Url,
+                r.DocumentId
+            }).ToList();
+
             return Ok(new 
             { 
                 data = fullText,
-                sources = searchResults.Select(r => new { 
-                    Title = r.Title, 
-                    Content = r.Summary,
-                    Url = r.Url 
-                }).ToList()
+                sources = sourcesData
             });
         }
         catch (Exception ex)
@@ -132,9 +136,19 @@ public class RagController(
             // Generate a unique blob name with the original file extension
             var blobName = $"{Guid.NewGuid()}{fileExtension}";
             
-            // Upload file to Azure Blob Storage
+            // Upload file to Azure Blob Storage with metadata
+            var metadata = new Dictionary<string, string>
+            {
+                ["originalfilename"] = file.FileName,
+                ["uploadedat"] = DateTime.UtcNow.ToString("O"),
+                ["contenttype"] = file.ContentType
+            };
+            
             using var fileStream = file.OpenReadStream();
             var response = await _blobContainerClient.UploadBlobAsync(blobName, fileStream);
+            
+            // Set metadata after upload
+            await _blobContainerClient.GetBlobClient(blobName).SetMetadataAsync(metadata);
 
             if (response != null)
             {
@@ -219,13 +233,111 @@ public class RagController(
                 await foreach (var result in response.Value.GetResultsAsync())
                 {
                     var document = result.Document;
-                    results.Add(new SearchResult
+                    var searchResult = new SearchResult
                     {
                         Title = document.ContainsKey("title") ? document["title"]?.ToString() ?? "" : "",
                         Summary = document.ContainsKey("content") ? document["content"]?.ToString() ?? "" : "",
                         Url = document.ContainsKey("url") ? document["url"]?.ToString() ?? "" : "",
                         Score = result.Score ?? 0
-                    });
+                    };
+                    
+                    // Extract blob name from metadata_storage_path if available
+                    // metadata_storage_path contains the base64-encoded path of the blob
+                    if (document.ContainsKey("metadata_storage_path") && document["metadata_storage_path"] != null)
+                    {
+                        var encodedPath = document["metadata_storage_path"]?.ToString();
+                        if (!string.IsNullOrEmpty(encodedPath))
+                        {
+                            try
+                            {
+                                // Decode the base64 path to get the blob name
+                                var decodedPathBytes = Convert.FromBase64String(encodedPath);
+                                var decodedPath = System.Text.Encoding.UTF8.GetString(decodedPathBytes);
+                                // The path is in format /container-name/blob-name
+                                var pathParts = decodedPath.Split('/');
+                                if (pathParts.Length >= 3)
+                                {
+                                    var blobName = pathParts[2]; // Get the blob name part
+                                    searchResult.DocumentId = blobName; // Store the document ID directly
+                                    searchResult.Url = $"/documents/{blobName}"; // Custom URL format for our download endpoint
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogWarning(ex, "Could not decode metadata_storage_path: {EncodedPath}", encodedPath);
+                            }
+                        }
+                    }
+                    
+                    // If DocumentId is still null, try to get it from the search result's ID field as fallback
+                    if (string.IsNullOrEmpty(searchResult.DocumentId))
+                    {
+                        // Check if the document has an 'id' field that can be used as DocumentId
+                        if (document.ContainsKey("id") && document["id"] != null)
+                        {
+                            var docId = document["id"]?.ToString();
+                            if (!string.IsNullOrEmpty(docId))
+                            {
+                                searchResult.DocumentId = docId;
+                            }
+                        }
+                    }
+                    
+                    // If DocumentId is still null but we have a URL, try to extract from URL
+                    if (string.IsNullOrEmpty(searchResult.DocumentId) && !string.IsNullOrEmpty(searchResult.Url))
+                    {
+                        try
+                        {
+                            var uri = new Uri(searchResult.Url);
+                            var path = uri.AbsolutePath;
+                            var pathParts = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
+                            if (pathParts.Length > 0)
+                            {
+                                searchResult.DocumentId = pathParts[pathParts.Length - 1]; // Last part as fallback
+                            }
+                        }
+                        catch (UriFormatException)
+                        {
+                            // If URL is malformed, try simple split
+                            var parts = searchResult.Url.Split('/', StringSplitOptions.RemoveEmptyEntries);
+                            if (parts.Length > 0)
+                            {
+                                searchResult.DocumentId = parts[parts.Length - 1];
+                            }
+                        }
+                    }
+                    
+                    // If primary fields are empty/meaningless, try to populate from available metadata
+                    if (string.IsNullOrWhiteSpace(searchResult.Title))
+                    {
+                        // Try to extract title from metadata_storage_name
+                        if (document.ContainsKey("metadata_storage_name") && document["metadata_storage_name"] != null)
+                        {
+                            searchResult.Title = document["metadata_storage_name"]?.ToString() ?? "Untitled Document";
+                        }
+                        else
+                        {
+                            // Use the document ID as title if available
+                            searchResult.Title = string.IsNullOrEmpty(searchResult.DocumentId) ? "Untitled Document" : searchResult.DocumentId;
+                        }
+                    }
+                    
+                    // If content is empty/meaningless, provide a meaningful summary from available metadata
+                    if (string.IsNullOrWhiteSpace(searchResult.Summary) || searchResult.Summary == "\n\n")
+                    {
+                        var metadataSummary = $"Document: {searchResult.Title}";
+                        if (document.ContainsKey("metadata_storage_last_modified") && document["metadata_storage_last_modified"] != null)
+                        {
+                            metadataSummary += $"\nModified: {document["metadata_storage_last_modified"]}";
+                        }
+                        if (document.ContainsKey("metadata_content_type") && document["metadata_content_type"] != null)
+                        {
+                            metadataSummary += $"\nType: {document["metadata_content_type"]}";
+                        }
+                        searchResult.Summary = metadataSummary;
+                    }
+                    
+                    results.Add(searchResult);
                 }
             }
             catch (Exception ex)
@@ -257,6 +369,59 @@ public class RagController(
         context += "Answer: ";
         
         return context;
+    }
+
+
+
+    [HttpGet("documents/{documentId}")]
+    public async Task<IActionResult> DownloadDocument(string documentId)
+    {
+        if (string.IsNullOrWhiteSpace(documentId))
+            return BadRequest(new { error = "Document ID is required" });
+
+        // Check if BlobContainerClient is available
+        if (_blobContainerClient == null)
+        {
+            _logger.LogError("BlobContainerClient is not configured, cannot download file from Azure Blob Storage");
+            return StatusCode(500, new { error = "Blob storage is not configured properly" });
+        }
+
+        try
+        {
+            // Get the blob client for the specific document
+            var blobClient = _blobContainerClient.GetBlobClient(documentId);
+
+            // Check if the blob exists
+            var existsResponse = await blobClient.ExistsAsync();
+            if (!existsResponse.Value)
+            {
+                return NotFound(new { error = "Document not found" });
+            }
+
+            // Download the blob content
+            var response = await blobClient.DownloadAsync();
+            var content = response.Value.Content;
+            var contentType = response.Value.ContentType ?? "application/octet-stream";
+
+            // Get the blob properties to determine the original filename
+            var propertiesResponse = await blobClient.GetPropertiesAsync();
+            var originalFileName = propertiesResponse.Value.Metadata.ContainsKey("originalfilename") 
+                ? propertiesResponse.Value.Metadata["originalfilename"] 
+                : documentId;
+
+            // Return the file content with appropriate headers
+            return File(content, contentType, originalFileName);
+        }
+        catch (RequestFailedException ex) when (ex.Status == 404)
+        {
+            _logger.LogWarning("Document with ID {DocumentId} not found in Azure Blob Storage", documentId);
+            return NotFound(new { error = "Document not found" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while downloading document {DocumentId} from Azure Blob Storage", documentId);
+            return StatusCode(500, new { error = "An error occurred while downloading the document" });
+        }
     }
 
     // The IndexDocumentAsync method is no longer used since indexing is handled by Azure AI Search indexer

@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import {
   Box,
   Paper,
@@ -23,15 +25,17 @@ import {
   AttachFile as AttachFileIcon, 
   ExpandMore as ExpandMoreIcon, 
   ExpandLess as ExpandLessIcon,
-  Description as DocumentIcon
+  Description as DocumentIcon,
+  Download as DownloadIcon
 } from '@mui/icons-material';
 import ApiClient from '../utils/ApiClient';
 
 // Define interfaces
 interface SourceDocument {
-  Title: string;
-  Content: string;
-  Url: string;
+  title: string;
+  content: string;
+  url: string;
+  documentId?: string;
 }
 
 interface Message {
@@ -261,6 +265,55 @@ const RagDemo: React.FC = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isBotTyping]);
 
+  // Download document function
+  const downloadDocument = async (documentIdOrUrl: string, title: string) => {
+    if (!title) {
+      console.error('Title is required for download');
+      return;
+    }
+
+    try {
+      // Use the title as the identifier for the download
+      // The title should contain the actual filename
+      const downloadUrl = `/api/rag/documents/${encodeURIComponent(title)}`;
+
+      // Get the auth token
+      const token = localStorage.getItem('authToken');
+      
+      // Fetch the document with proper authentication
+      const response = await fetch(downloadUrl, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Download failed with status ${response.status}`);
+      }
+
+      // Get the blob data from the response
+      const blob = await response.blob();
+      
+      // Create a download link
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.setAttribute('download', title); // Set the filename for download
+      
+      // Trigger the download
+      document.body.appendChild(link);
+      link.click();
+      
+      // Clean up the temporary link and object URL
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      console.error('Error downloading document:', error);
+      addMessage('System', 'ai', `Failed to download document: ${title}`);
+    }
+  };
+
   // Handle Enter key press in input field
   const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -318,7 +371,8 @@ const RagDemo: React.FC = () => {
             display: 'flex',
             flexDirection: 'column',
             gap: 2,
-            overflow: 'hidden' /* Prevent double scrollbars at this level */
+            overflow: 'hidden', /* Prevent double scrollbars at this level */
+            minHeight: 0 /* Allow this flex item to be smaller than its content */
           }}
         >
           {isLoading && (
@@ -347,7 +401,23 @@ const RagDemo: React.FC = () => {
               flex: 1,
               overflowY: messages.length > 0 || isBotTyping ? 'auto' : 'hidden',
               display: 'flex',
-              flexDirection: 'column'
+              flexDirection: 'column',
+              minHeight: 0, /* This allows the flex item to be smaller than its content */
+              /* Custom scrollbar styling */
+              '&::-webkit-scrollbar': {
+                width: '8px',
+              },
+              '&::-webkit-scrollbar-track': {
+                background: '#f1f1f1',
+                borderRadius: '4px',
+              },
+              '&::-webkit-scrollbar-thumb': {
+                background: '#c1c1c1',
+                borderRadius: '4px',
+              },
+              '&::-webkit-scrollbar-thumb:hover': {
+                background: '#a8a8a8',
+              }
             }}
           >
             {!isLoading && messages.length === 0 && !isBotTyping && (
@@ -431,12 +501,101 @@ const RagDemo: React.FC = () => {
                       {message.timestamp}
                     </Typography>
                   </Box>
-                  <Typography variant="body1">
-                    {message.content}
-                  </Typography>
+                  <Box sx={{ mt: 1, mb: 1 }}>
+                    <ReactMarkdown
+                      children={message.content}
+                      remarkPlugins={[remarkGfm]}
+                      components={{
+                        // Map markdown elements to Material-UI components
+                        p: ({node, ...props}) => <Typography variant="body1" paragraph {...props} />,
+                        h1: ({node, ...props}) => <Typography variant="h4" component="h1" gutterBottom {...props} />,
+                        h2: ({node, ...props}) => <Typography variant="h5" component="h2" gutterBottom {...props} />,
+                        h3: ({node, ...props}) => <Typography variant="h6" component="h3" gutterBottom {...props} />,
+                        h4: ({node, ...props}) => <Typography variant="subtitle1" component="h4" gutterBottom {...props} />,
+                        h5: ({node, ...props}) => <Typography variant="subtitle2" component="h5" gutterBottom {...props} />,
+                        h6: ({node, ...props}) => <Typography variant="subtitle2" component="h6" gutterBottom {...props} />,
+                        li: ({node, ...props}) => <Typography component="li" variant="body1" {...props} />,
+                        ul: ({node, ...props}) => <ul style={{ marginTop: '0.5em', marginBottom: '0.5em' }} {...props} />,
+                        ol: ({node, ...props}) => <ol style={{ marginTop: '0.5em', marginBottom: '0.5em' }} {...props} />,
+                        pre: ({node, ...props}) => (
+                          <Paper 
+                            component="pre"
+                            sx={{ 
+                              p: 2, 
+                              mt: 1, 
+                              mb: 1, 
+                              backgroundColor: 'grey.100',
+                              overflowX: 'auto',
+                              fontFamily: 'monospace',
+                              fontSize: '0.875rem',
+                              margin: 0,
+                              whiteSpace: 'pre'
+                            }} 
+                            {...props} 
+                          />
+                        ),
+                        code: ({node, className, children, ...props}) => {
+                          const isInline = !className || !className.startsWith('language-');
+                          if (isInline) {
+                            // Inline code
+                            return (
+                              <Typography 
+                                component="code" 
+                                sx={{ 
+                                  backgroundColor: 'grey.200', 
+                                  px: 0.5, 
+                                  py: 0.25, 
+                                  borderRadius: 0.5,
+                                  fontFamily: 'monospace',
+                                  fontSize: '0.875rem'
+                                }} 
+                                {...props} 
+                              >
+                                {children}
+                              </Typography>
+                            );
+                          } else {
+                            // Block code - no syntax highlighting to avoid build issues
+                            return (
+                              <Paper 
+                                component="code"
+                                sx={{ 
+                                  p: 2, 
+                                  mt: 1, 
+                                  mb: 1, 
+                                  backgroundColor: 'grey.100',
+                                  overflowX: 'auto',
+                                  fontFamily: 'monospace',
+                                  fontSize: '0.875rem',
+                                  display: 'block',
+                                  whiteSpace: 'pre'
+                                }} 
+                                {...props} 
+                              >
+                                {children}
+                              </Paper>
+                            );
+                          }
+                        },
+                        a: ({node, ...props}) => (
+                          <Typography 
+                            component="a" 
+                            sx={{ 
+                              color: 'primary.main', 
+                              textDecoration: 'underline',
+                              cursor: 'pointer'
+                            }} 
+                            {...props} 
+                          />
+                        ),
+                        strong: ({node, ...props}) => <Typography component="strong" sx={{ fontWeight: 'bold' }} {...props} />,
+                        em: ({node, ...props}) => <Typography component="em" sx={{ fontStyle: 'italic' }} {...props} />,
+                      }}
+                    />
+                  </Box>
                   
                   {/* Show sources if this is an AI response with sources */}
-                  {message.type === 'ai' && message.sender === 'RAG Assistant' && message.sources && message.sources.length > 0 && (
+                  {message.type === 'ai' && message.sources && message.sources.length > 0 && (
                     <Box sx={{ mt: 1, pt: 1, borderTop: '1px solid #e0e0e0' }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <Typography variant="caption" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
@@ -453,19 +612,36 @@ const RagDemo: React.FC = () => {
                       
                       <Collapse in={showSources}>
                         <List dense sx={{ mt: 1, pl: 2 }}>
-                          {message.sources.map((source, index) => (
-                            <ListItem key={index} sx={{ pl: 0, py: 0.5 }}>
-                              <ListItemIcon sx={{ minWidth: '24px', color: 'primary.main' }}>
-                                <DocumentIcon fontSize="small" />
-                              </ListItemIcon>
-                              <ListItemText 
-                                primary={source.Title || 'Untitled Document'} 
-                                secondary={(source.Content || '').substring(0, 100) + ((source.Content || '').length > 100 ? '...' : '')}
-                                primaryTypographyProps={{ variant: 'caption', fontWeight: 'medium' }}
-                                secondaryTypographyProps={{ variant: 'caption' }}
-                              />
-                            </ListItem>
-                          ))}
+                          {message.sources
+                            .filter(source => source.title || (source.content && source.content.trim() !== '')) // Only show sources with meaningful content
+                            .map((source, index) => (
+                              <ListItem key={index} sx={{ pl: 0, py: 0.5, display: 'flex', alignItems: 'flex-start' }}>
+                                <ListItemIcon sx={{ minWidth: '24px', color: 'primary.main', marginTop: 0.5 }}>
+                                  <DocumentIcon fontSize="small" />
+                                </ListItemIcon>
+                                <ListItemText 
+                                  primary={source.title || 'Untitled Document'} 
+                                  secondary={(source.content || '').substring(0, 100) + ((source.content || '').length > 100 ? '...' : '')}
+                                  primaryTypographyProps={{ variant: 'caption', fontWeight: 'medium' }}
+                                  secondaryTypographyProps={{ variant: 'caption' }}
+                                />
+                                {source.title && (
+                                  <IconButton 
+                                    size="small" 
+                                    onClick={() => downloadDocument('', source.title)}
+                                    sx={{ 
+                                      color: 'primary.main', 
+                                      padding: '4px', 
+                                      marginLeft: 1, 
+                                      marginTop: 0.5 
+                                    }}
+                                    title={`Download ${source.title}`}
+                                  >
+                                    <DownloadIcon fontSize="small" />
+                                  </IconButton>
+                                )}
+                              </ListItem>
+                            ))}
                         </List>
                       </Collapse>
                     </Box>

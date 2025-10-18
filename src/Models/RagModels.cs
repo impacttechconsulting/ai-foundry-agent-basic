@@ -11,6 +11,7 @@ public class SearchResult
     public string Title { get; set; } = string.Empty;
     public string Summary { get; set; } = string.Empty;
     public string Url { get; set; } = string.Empty;
+    public string? DocumentId { get; set; } = null;
     public double Score { get; set; }
 }
 

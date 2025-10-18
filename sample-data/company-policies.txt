@@ -1,0 +1,42 @@
+# Company Policies
+
+## Remote Work Policy
+Effective Date: January 1, 2025
+Last Updated: September 15, 2025
+
+### Purpose
+This policy establishes guidelines for remote work arrangements to ensure productivity, communication, and work-life balance for all employees.
+
+### Eligibility
+Remote work arrangements are available to employees who:
+- Have completed their 90-day probationary period
+- Demonstrate consistent performance and reliability
+- Have a suitable home office environment
+- Obtain approval from their direct supervisor
+
+### Guidelines
+1. Employees must maintain the same working hours as their in-office schedule unless otherwise agreed upon.
+2. All remote employees must have a secure internet connection and appropriate technology.
+3. Regular check-ins with supervisors are required at least twice weekly.
+4. All company data must be handled according to our security protocols.
+5. Employees working remotely are expected to be available during business hours via email, phone, or video conference.
+
+### Communication Expectations
+- Respond to emails within 2 hours during business hours
+- Join all scheduled meetings virtually
+- Use collaboration tools as required by your department
+- Maintain a professional environment during video calls
+
+## Code of Conduct
+
+### Professional Behavior
+- Respect all colleagues regardless of position, background, or personal characteristics
+- Maintain confidentiality of all proprietary information
+- Demonstrate integrity in all business dealings
+- Report any violations of company policy immediately
+
+### Technology Use
+- Company-provided devices are to be used for business purposes
+- Personal use should be minimal and not interfere with productivity
+- All software must be properly licensed
+- Internet usage should align with business needs

@@ -34,7 +34,7 @@ public class AzureSearchSetupService : IAzureSearchSetupService, IHostedService
     {
         try
         {
-            _logger.LogInformation("Starting Azure Search setup for data source and indexer");
+            _logger.LogInformation("Starting Azure Search setup for index, data source, and indexer");
 
             // Get storage configuration
             var storageOptions = _storageOptions.CurrentValue;
@@ -55,6 +55,25 @@ public class AzureSearchSetupService : IAzureSearchSetupService, IHostedService
                 return false;
             }
 
+            // Get the search index name from configuration
+            var searchIndexName = _searchOptions.CurrentValue.IndexName;
+            
+            if (string.IsNullOrEmpty(searchIndexName))
+            {
+                _logger.LogWarning("Azure AI Search IndexName is not configured. Using default 'ai-foundry-rag-agent-index' index.");
+                searchIndexName = "ai-foundry-rag-agent-index";
+            }
+
+            // Create or update the search index first (required before indexer)
+            _logger.LogInformation("Creating or updating search index: {IndexName}", searchIndexName);
+            var indexCreated = await _indexerService.CreateOrUpdateIndexAsync(searchIndexName);
+
+            if (!indexCreated)
+            {
+                _logger.LogError("Failed to create or update search index: {IndexName}", searchIndexName);
+                return false;
+            }
+
             // Create or update the data source connection
             _logger.LogInformation("Creating or updating data source: {DataSourceName}", _dataSourceName);
             var dataSourceCreated = await _indexerService.CreateOrUpdateDataSourceConnectionAsync(
@@ -67,15 +86,6 @@ public class AzureSearchSetupService : IAzureSearchSetupService, IHostedService
             {
                 _logger.LogError("Failed to create or update data source: {DataSourceName}", _dataSourceName);
                 return false;
-            }
-
-            // Get the search index name from configuration
-            var searchIndexName = _searchOptions.CurrentValue.IndexName;
-            
-            if (string.IsNullOrEmpty(searchIndexName))
-            {
-                _logger.LogWarning("Azure AI Search IndexName is not configured. Using default 'ai-foundry-rag-agent-index' index.");
-                searchIndexName = "ai-foundry-rag-agent-index";
             }
 
             // Create or update the indexer
@@ -91,7 +101,7 @@ public class AzureSearchSetupService : IAzureSearchSetupService, IHostedService
                 return false;
             }
 
-            _logger.LogInformation("Azure Search data source and indexer setup completed successfully");
+            _logger.LogInformation("Azure Search index, data source and indexer setup completed successfully");
             return true;
         }
         catch (Exception ex)
