@@ -17,7 +17,8 @@ import Login from './components/Login';
 import ChatAgent from './components/ChatAgent';
 import Dashboard from './components/Dashboard';
 import Rag from './components/Rag';
-import ContentUnderstanding from './components/ContentUnderstanding';
+// import ContentUnderstanding from './components/ContentUnderstanding';
+// import AgentCreation from './components/AgentCreation';
 import Navigation from './components/Navigation';
 
 const drawerWidth = 240;
@@ -126,6 +127,7 @@ const App: React.FC = () => {
           <Typography variant="h6" noWrap component="div">
             {currentPage === 'dashboard' && 'Dashboard'}
             {currentPage === 'chat' && 'Chat Agent'}
+            {/* {currentPage === 'agent-creation' && 'Agent Creation'} */}
             {currentPage === 'rag' && 'RAG'}
             {currentPage === 'content' && 'Content Understanding'}
           </Typography>
@@ -179,8 +181,9 @@ const App: React.FC = () => {
         {/* Render the appropriate page based on current selection */}
         {currentPage === 'dashboard' && <Dashboard />}
         {currentPage === 'chat' && <ChatAgent />}
+        {/* {currentPage === 'agent-creation' && <AgentCreation />} */}
         {currentPage === 'rag' && <Rag />}
-        {currentPage === 'content' && <ContentUnderstanding />}
+        {/* {currentPage === 'content' && <ContentUnderstanding />} */}
       </Box>
     </Box>
   );

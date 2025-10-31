@@ -33,6 +33,21 @@ variable "ai_agent_id" {
   type        = string
 }
 
+variable "azure_openai_embeddings_endpoint" {
+  description = "AI Embedding Model endpoint"
+  type        = string
+}
+
+variable "azure_openai_embeddings_api_key" {
+  description = "AI Embedding Model API Key"
+  type        = string
+}
+
+variable "azure_openai_embeddings_deployment_name" {
+  description = "AI Embedding Model Deployment Name"
+  type        = string
+}
+
 variable "app_insights_instrumentation_key" {
   description = "Application Insights instrumentation key (optional)"
   type        = string

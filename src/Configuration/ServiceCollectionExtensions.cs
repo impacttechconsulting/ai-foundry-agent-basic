@@ -1,3 +1,4 @@
+using AiFoundryAgent.Services;
 using Azure.Storage.Blobs;
 using Microsoft.Extensions.Options;
 
@@ -95,6 +96,28 @@ public static class ServiceCollectionExtensions
             });
         }
 
+        return services;
+    }
+
+    public static IServiceCollection AddEmbeddingServices(this IServiceCollection services, IConfiguration configuration)
+    {
+        var embeddingSection = configuration.GetSection(EmbeddingServiceOptions.SectionName);
+        if (embeddingSection.Exists())
+        {
+            services.AddOptions<EmbeddingServiceOptions>()
+                .Bind(embeddingSection)
+                .ValidateDataAnnotations()
+                .ValidateOnStart();
+
+            services.AddSingleton<IEmbeddingService, EmbeddingService>();
+        }
+
+        return services;
+    }
+
+    public static IServiceCollection AddDocumentProcessingServices(this IServiceCollection services)
+    {
+        services.AddSingleton<IDocumentProcessingService, DocumentProcessingService>();
         return services;
     }
 }

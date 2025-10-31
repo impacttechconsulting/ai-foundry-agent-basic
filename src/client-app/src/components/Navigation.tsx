@@ -64,6 +64,18 @@ const Navigation: React.FC<NavigationProps> = ({ currentPage, onNavigate, onLogo
           </ListItemButton>
         </ListItem>
         
+        {/* <ListItem key="agent-creation" disablePadding>
+          <ListItemButton 
+            onClick={() => onNavigate('agent-creation')}
+            selected={currentPage === 'agent-creation'}
+          >
+            <ListItemIcon>
+              <AgentIcon />
+            </ListItemIcon>
+            <ListItemText primary="Agent Creation" />
+          </ListItemButton>
+        </ListItem> */}
+        
         <ListItem key="rag" disablePadding>
           <ListItemButton 
             onClick={() => onNavigate('rag')}
@@ -76,7 +88,7 @@ const Navigation: React.FC<NavigationProps> = ({ currentPage, onNavigate, onLogo
           </ListItemButton>
         </ListItem>
         
-        <ListItem key="content" disablePadding>
+        {/* <ListItem key="content" disablePadding>
           <ListItemButton 
             onClick={() => onNavigate('content')}
             selected={currentPage === 'content'}
@@ -86,7 +98,7 @@ const Navigation: React.FC<NavigationProps> = ({ currentPage, onNavigate, onLogo
             </ListItemIcon>
             <ListItemText primary="Content Understanding" />
           </ListItemButton>
-        </ListItem>
+        </ListItem> */}
         
         {/* Divider and logout at the bottom */}
         <Divider sx={{ my: 2, mt: 'auto' }} />

@@ -40,18 +40,21 @@ module "optional_resources" {
 
 # Call app service module
 module "app_service" {
-  source                           = "./modules/app-service"
-  resource_group_name              = module.resource_group.resource_group_name
-  location                         = var.location
-  app_service_plan_name            = var.app_service_plan_name
-  app_service_name                 = var.app_service_name
-  app_service_sku                  = var.app_service_sku
-  ai_project_endpoint              = var.ai_project_endpoint
-  ai_agent_id                      = var.ai_agent_id
-  key_vault_url                    = module.optional_resources.key_vault_url
-  app_insights_instrumentation_key = module.optional_resources.app_insights_instrumentation_key
-  search_service_endpoint          = module.ai_search.search_service_endpoint
-  search_service_admin_key         = module.ai_search.search_service_admin_key
-  search_index_name                = var.search_index_name
-  storage_account_name             = module.storage_account.storage_account_name
+  source                                  = "./modules/app-service"
+  resource_group_name                     = module.resource_group.resource_group_name
+  location                                = var.location
+  app_service_plan_name                   = var.app_service_plan_name
+  app_service_name                        = var.app_service_name
+  app_service_sku                         = var.app_service_sku
+  ai_project_endpoint                     = var.ai_project_endpoint
+  ai_agent_id                             = var.ai_agent_id
+  azure_openai_embeddings_endpoint        = var.azure_openai_embeddings_endpoint
+  azure_openai_embeddings_api_key         = var.azure_openai_embeddings_api_key
+  azure_openai_embeddings_deployment_name = var.azure_openai_embeddings_deployment_name
+  key_vault_url                           = module.optional_resources.key_vault_url
+  app_insights_instrumentation_key        = module.optional_resources.app_insights_instrumentation_key
+  search_service_endpoint                 = module.ai_search.search_service_endpoint
+  search_service_admin_key                = module.ai_search.search_service_admin_key
+  search_index_name                       = var.search_index_name
+  storage_account_name                    = module.storage_account.storage_account_name
 }

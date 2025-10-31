@@ -40,6 +40,24 @@ variable "ai_agent_id" {
   default     = "asst_QNfpc9danMOAjcqlo3dGcJ8Y"
 }
 
+variable "azure_openai_embeddings_endpoint" {
+  description = "AI Embedding Model endpoint"
+  type        = string
+  default     = "https://impact-azure-ai-foundry.cognitiveservices.azure.com/openai/deployments/text-embedding-ada-002/embeddings?api-version=2023-05-15"
+}
+
+variable "azure_openai_embeddings_api_key" {
+  description = "AI Embedding Model API Key"
+  type        = string
+  default     = ""
+}
+
+variable "azure_openai_embeddings_deployment_name" {
+  description = "AI Embedding Model Deployment Name"
+  type        = string
+  default     = "text-embedding-ada-002"
+}
+
 variable "ai_project_name" {
   description = "Name of the Azure AI Project"
   type        = string
@@ -55,7 +73,7 @@ variable "key_vault_name" {
 variable "application_insights_name" {
   description = "Name of Application Insights (optional)"
   type        = string
-  default     = ""
+  default     = "ai-foundry-agent-app-insights"
 }
 
 variable "search_service_name" {

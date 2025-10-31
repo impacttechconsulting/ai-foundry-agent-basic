@@ -30,6 +30,12 @@ builder.Services.AddOptions<ChatApiOptions>()
 // Add Azure Storage services with proper configuration
 builder.Services.AddAzureStorageServices(builder.Configuration);
 
+// Add embedding services
+builder.Services.AddEmbeddingServices(builder.Configuration);
+
+// Add document processing services
+builder.Services.AddDocumentProcessingServices();
+
 builder.Services.AddSingleton((provider) =>
 {
     var config = provider.GetRequiredService<IOptions<ChatApiOptions>>().Value;

@@ -1,3 +1,5 @@
+using Azure.AI.Projects;
+
 namespace AiFoundryAgent.Controllers;
 
 [ApiController]
@@ -20,7 +22,7 @@ public class AgentsController : ControllerBase
         try
         {
             _logger.LogInformation("Fetching list of agents from Azure Foundry services");
-            
+
             // Fetch agents from Azure Foundry services using the PersistentAgentsClient
             var agents = await GetAgentsFromAzureAsync();
 
@@ -37,6 +39,24 @@ public class AgentsController : ControllerBase
         {
             _logger.LogError(ex, "Error occurred while fetching agents list from Azure Foundry services");
             return StatusCode(500, new { error = "An error occurred while retrieving the agents list" });
+        }
+    }
+
+    [HttpGet("models")]
+    public async Task<ActionResult<IAsyncEnumerator<AIProjectDeployment>>> GetModelDeploymentsAsync()
+    {
+        try
+        {
+            _logger.LogInformation("Fetching list of model deployments from Azure AI Foundry");
+            var projectClient = new AIProjectClient(new Uri("https://your-ai-foundry-project.eastus.inference.ai.azure.com"), new DefaultAzureCredential());
+            var deployments = projectClient.Deployments.GetDeploymentsAsync();
+            // _logger.LogInformation("Successfully returned {Count} model deployments", modelDeployments.Count);
+            return Ok(deployments.GetAsyncEnumerator());
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while fetching model deployments from Azure AI Foundry");
+            return StatusCode(500, new { error = "An error occurred while retrieving the model deployments" });
         }
     }
 
@@ -68,7 +88,7 @@ public class AgentsController : ControllerBase
         try
         {
             _logger.LogInformation("Fetching agent with ID: {AgentId} from Azure Foundry services", id);
-            
+
             // Fetch the specific agent from Azure Foundry services
             var agent = await GetAgentFromAzureAsync(id);
             if (agent == null)
@@ -93,7 +113,7 @@ public class AgentsController : ControllerBase
         {
             // Fetch the specific agent from Azure Foundry services using the Administration API
             var response = await _client.Administration.GetAgentAsync(agentId);
-            
+
             if (response.HasValue)
             {
                 return response.Value;
@@ -106,5 +126,105 @@ public class AgentsController : ControllerBase
         }
 
         return null;
+    }
+
+    [HttpPost]
+    public async Task<ActionResult<AgentDto>> CreateAgentAsync([FromBody] CreateAgentRequest request)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        try
+        {
+            _logger.LogInformation("Creating new agent: {AgentName}", request.Name);
+
+            // Create the agent using the Azure AI Foundry service
+            var response = await _client.Administration.CreateAgentAsync(
+                request.Name,
+                request.Model,
+                request.Instructions,
+                request.Description);
+
+            var createdAgent = response.Value;
+
+            var agentDto = new AgentDto
+            {
+                Id = createdAgent.Id,
+                Name = createdAgent.Name,
+                Description = createdAgent.Description,
+                Model = createdAgent.Model,
+                Instructions = createdAgent.Instructions
+            };
+
+            _logger.LogInformation("Successfully created agent: {AgentId} - {AgentName}", agentDto.Id, agentDto.Name);
+
+            return CreatedAtAction(nameof(GetAgentAsync), new { id = agentDto.Id }, agentDto);
+        }
+        catch (RequestFailedException ex)
+        {
+            _logger.LogError(ex, "Error occurred while creating agent: {AgentName}", request.Name);
+            return StatusCode(500, new { error = $"An error occurred while creating the agent: {ex.Message}" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while creating agent: {AgentName}", request.Name);
+            return StatusCode(500, new { error = "An error occurred while creating the agent" });
+        }
+    }
+
+    [HttpPut("{id}")]
+    public async Task<ActionResult<AgentDto>> UpdateAgentAsync(string id, [FromBody] UpdateAgentRequest request)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        try
+        {
+            _logger.LogInformation("Updating agent with ID: {AgentId}", id);
+
+            // Get the existing agent first to ensure it exists
+            var existingAgent = await GetAgentFromAzureAsync(id);
+            if (existingAgent == null)
+            {
+                _logger.LogWarning("Agent with ID {AgentId} not found for update", id);
+                return NotFound(new { error = "Agent not found" });
+            }
+
+            // Update the agent in Azure AI Foundry
+            var response = await _client.Administration.UpdateAgentAsync(
+                id,
+                request.Name,
+                request.Description,
+                request.Instructions);
+
+            var updatedAgent = response.Value;
+
+            var agentDto = new AgentDto
+            {
+                Id = updatedAgent.Id,
+                Name = updatedAgent.Name,
+                Description = updatedAgent.Description,
+                Model = updatedAgent.Model,
+                Instructions = updatedAgent.Instructions
+            };
+
+            _logger.LogInformation("Successfully updated agent: {AgentId} - {AgentName}", agentDto.Id, agentDto.Name);
+
+            return Ok(agentDto);
+        }
+        catch (RequestFailedException ex)
+        {
+            _logger.LogError(ex, "Error occurred while updating agent with ID: {AgentId}", id);
+            return StatusCode(500, new { error = $"An error occurred while updating the agent: {ex.Message}" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while updating agent with ID: {AgentId}", id);
+            return StatusCode(500, new { error = "An error occurred while updating the agent" });
+        }
     }
 }

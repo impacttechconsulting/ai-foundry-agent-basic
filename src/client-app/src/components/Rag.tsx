@@ -20,10 +20,10 @@ import {
   LinearProgress,
   Chip
 } from '@mui/material';
-import { 
-  Psychology as AiIcon, 
-  AttachFile as AttachFileIcon, 
-  ExpandMore as ExpandMoreIcon, 
+import {
+  Psychology as AiIcon,
+  AttachFile as AttachFileIcon,
+  ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon,
   Description as DocumentIcon,
   Download as DownloadIcon
@@ -66,7 +66,7 @@ const RagDemo: React.FC = () => {
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [uploadMessage, setUploadMessage] = useState<string>('');
-  const [showSources, setShowSources] = useState<boolean>(true);
+  const [showSources, setShowSources] = useState<boolean>(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Format time to HH:MM format
@@ -124,7 +124,7 @@ const RagDemo: React.FC = () => {
 
     const prompt = inputValue.trim();
     setInputValue('');
-    
+
     // Add user message to UI
     addMessage('You', 'user', prompt);
 
@@ -134,7 +134,7 @@ const RagDemo: React.FC = () => {
     try {
       // Send prompt to backend
       const response = await sendPrompt(prompt);
-      
+
       // Add AI response to UI with sources if available
       addMessage('RAG Assistant', 'ai', response.data, response.sources);
     } catch (error) {
@@ -149,22 +149,22 @@ const RagDemo: React.FC = () => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
-      const allowedTypes = ['application/pdf', 'text/plain', 'application/msword', 
-                           'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                           'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
-      
+      const allowedTypes = ['application/pdf', 'text/plain', 'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
+
       if (!allowedTypes.includes(selectedFile.type)) {
         setUploadMessage('File type not supported. Please upload PDF, TXT, DOC, DOCX, XLS, or XLSX files.');
         setFile(null);
         return;
       }
-      
+
       if (selectedFile.size > 10 * 1024 * 1024) { // 10MB limit
         setUploadMessage('File size exceeds 10MB limit.');
         setFile(null);
         return;
       }
-      
+
       setFile(selectedFile);
       setUploadMessage(`Selected: ${selectedFile.name}`);
     }
@@ -176,13 +176,13 @@ const RagDemo: React.FC = () => {
 
     setIsUploading(true);
     setUploadMessage('Uploading file...');
-    
+
     try {
       const formData = new FormData();
       formData.append('file', file);
 
       const xhr = new XMLHttpRequest();
-      
+
       // Handle upload progress
       xhr.upload.onprogress = (event) => {
         if (event.lengthComputable) {
@@ -191,8 +191,8 @@ const RagDemo: React.FC = () => {
         }
       };
 
-      xhr.open('POST', '/api/rag/upload');
-      
+      xhr.open('POST', '/api/rag/uploadWithEmbeddings');
+
       // Set authorization header
       const token = localStorage.getItem('authToken');
       if (token) {
@@ -202,7 +202,7 @@ const RagDemo: React.FC = () => {
       xhr.onload = () => {
         setIsUploading(false);
         setUploadProgress(0);
-        
+
         if (xhr.status === 200) {
           const response = JSON.parse(xhr.responseText);
           setUploadMessage(response.message);
@@ -210,7 +210,7 @@ const RagDemo: React.FC = () => {
           // Clear input to allow re-upload of same file
           const fileInput = document.getElementById('file-upload') as HTMLInputElement;
           if (fileInput) fileInput.value = '';
-          
+
           addMessage('System', 'ai', `File "${response.fileName}" uploaded and indexed successfully.`);
         } else {
           const errorResponse = JSON.parse(xhr.responseText);
@@ -279,7 +279,7 @@ const RagDemo: React.FC = () => {
 
       // Get the auth token
       const token = localStorage.getItem('authToken');
-      
+
       // Fetch the document with proper authentication
       const response = await fetch(downloadUrl, {
         method: 'GET',
@@ -294,17 +294,17 @@ const RagDemo: React.FC = () => {
 
       // Get the blob data from the response
       const blob = await response.blob();
-      
+
       // Create a download link
       const blobUrl = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = blobUrl;
       link.setAttribute('download', title); // Set the filename for download
-      
+
       // Trigger the download
       document.body.appendChild(link);
       link.click();
-      
+
       // Clean up the temporary link and object URL
       document.body.removeChild(link);
       window.URL.revokeObjectURL(blobUrl);
@@ -331,20 +331,21 @@ const RagDemo: React.FC = () => {
   ];
 
   return (
-    <Box sx={{ 
-      display: 'flex', 
-      flexDirection: 'column', 
-      height: '100%',
+    <Box sx={{
+      display: 'flex',
+      flexDirection: 'column',
+      height: '90vh',
       maxHeight: '100vh',
-      backgroundColor: 'background.default'
+      backgroundColor: 'background.default',
     }}>
       {/* Chat Header */}
-      <Box sx={{ 
-        backgroundColor: 'primary.main', 
-        color: 'white', 
-        padding: 2, 
+      <Box sx={{
+        backgroundColor: 'primary.main',
+        color: 'white',
+        padding: 2,
         textAlign: 'center',
-        flexShrink: 0
+        flexShrink: 0,
+        flex: 0,
       }}>
         <Typography variant="h5" component="h1">
           <AiIcon sx={{ verticalAlign: 'middle', mr: 1 }} />
@@ -356,31 +357,32 @@ const RagDemo: React.FC = () => {
       </Box>
 
       {/* Main content area with messages and input */}
-      <Box 
-        sx={{ 
+      <Box
+        sx={{
           flex: 1,
           display: 'flex',
-          flexDirection: 'column'
+          flexDirection: 'column',
+          minHeight: 0,
+          overflow: 'auto'
         }}
       >
         {/* Chat Messages Area - This will scroll if needed */}
-        <Box 
-          sx={{ 
+        <Box
+          sx={{
             flex: 1,
             padding: 2,
             display: 'flex',
             flexDirection: 'column',
             gap: 2,
-            overflow: 'hidden', /* Prevent double scrollbars at this level */
-            minHeight: 0 /* Allow this flex item to be smaller than its content */
+            minHeight: 0
           }}
         >
           {isLoading && (
-            <Box 
-              sx={{ 
-                display: 'flex', 
-                justifyContent: 'center', 
-                alignItems: 'center', 
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
                 height: '100%',
                 flexDirection: 'column'
               }}
@@ -394,10 +396,10 @@ const RagDemo: React.FC = () => {
               </Typography>
             </Box>
           )}
-          
-          <Box 
+
+          <Box
             className={messages.length > 0 || isBotTyping ? 'chat-messages-container' : 'chat-messages-container no-scrollbar'}
-            sx={{ 
+            sx={{
               flex: 1,
               overflowY: messages.length > 0 || isBotTyping ? 'auto' : 'hidden',
               display: 'flex',
@@ -421,22 +423,22 @@ const RagDemo: React.FC = () => {
             }}
           >
             {!isLoading && messages.length === 0 && !isBotTyping && (
-              <Box 
-                sx={{ 
-                  display: 'flex', 
-                  flexDirection: 'column', 
-                  alignItems: 'center', 
-                  justifyContent: 'center', 
-                  height: '100%', 
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  height: '100%',
                   textAlign: 'center',
                   padding: 4
                 }}
               >
-                <Avatar sx={{ 
-                  width: 80, 
-                  height: 80, 
-                  mb: 2, 
-                  bgcolor: 'primary.main' 
+                <Avatar sx={{
+                  width: 80,
+                  height: 80,
+                  mb: 2,
+                  bgcolor: 'primary.main'
                 }}>
                   <AiIcon sx={{ fontSize: 40 }} />
                 </Avatar>
@@ -450,14 +452,14 @@ const RagDemo: React.FC = () => {
                 <Typography variant="body1" sx={{ mb: 3 }}>
                   How can I assist you today?
                 </Typography>
-                
+
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 1, mt: 2 }}>
                   {suggestions.map((suggestion, index) => (
                     <Button
                       key={index}
                       variant="outlined"
                       onClick={() => handleSuggestion(suggestion)}
-                      sx={{ 
+                      sx={{
                         textTransform: 'none',
                         borderColor: 'primary.main',
                         color: 'primary.main',
@@ -486,6 +488,7 @@ const RagDemo: React.FC = () => {
                 <Paper
                   sx={{
                     padding: 2,
+                    margin: 1,
                     maxWidth: '80%',
                     backgroundColor: message.type === 'user' ? 'primary.main' : 'grey.100',
                     color: message.type === 'user' ? 'white' : 'text.primary',
@@ -507,49 +510,49 @@ const RagDemo: React.FC = () => {
                       remarkPlugins={[remarkGfm]}
                       components={{
                         // Map markdown elements to Material-UI components
-                        p: ({node, ...props}) => <Typography variant="body1" paragraph {...props} />,
-                        h1: ({node, ...props}) => <Typography variant="h4" component="h1" gutterBottom {...props} />,
-                        h2: ({node, ...props}) => <Typography variant="h5" component="h2" gutterBottom {...props} />,
-                        h3: ({node, ...props}) => <Typography variant="h6" component="h3" gutterBottom {...props} />,
-                        h4: ({node, ...props}) => <Typography variant="subtitle1" component="h4" gutterBottom {...props} />,
-                        h5: ({node, ...props}) => <Typography variant="subtitle2" component="h5" gutterBottom {...props} />,
-                        h6: ({node, ...props}) => <Typography variant="subtitle2" component="h6" gutterBottom {...props} />,
-                        li: ({node, ...props}) => <Typography component="li" variant="body1" {...props} />,
-                        ul: ({node, ...props}) => <ul style={{ marginTop: '0.5em', marginBottom: '0.5em' }} {...props} />,
-                        ol: ({node, ...props}) => <ol style={{ marginTop: '0.5em', marginBottom: '0.5em' }} {...props} />,
-                        pre: ({node, ...props}) => (
-                          <Paper 
+                        p: ({ node, ...props }) => <Typography variant="body1" paragraph {...props} />,
+                        h1: ({ node, ...props }) => <Typography variant="h4" component="h1" gutterBottom {...props} />,
+                        h2: ({ node, ...props }) => <Typography variant="h5" component="h2" gutterBottom {...props} />,
+                        h3: ({ node, ...props }) => <Typography variant="h6" component="h3" gutterBottom {...props} />,
+                        h4: ({ node, ...props }) => <Typography variant="subtitle1" component="h4" gutterBottom {...props} />,
+                        h5: ({ node, ...props }) => <Typography variant="subtitle2" component="h5" gutterBottom {...props} />,
+                        h6: ({ node, ...props }) => <Typography variant="subtitle2" component="h6" gutterBottom {...props} />,
+                        li: ({ node, ...props }) => <Typography component="li" variant="body1" {...props} />,
+                        ul: ({ node, ...props }) => <ul style={{ marginTop: '0.5em', marginBottom: '0.5em' }} {...props} />,
+                        ol: ({ node, ...props }) => <ol style={{ marginTop: '0.5em', marginBottom: '0.5em' }} {...props} />,
+                        pre: ({ node, ...props }) => (
+                          <Paper
                             component="pre"
-                            sx={{ 
-                              p: 2, 
-                              mt: 1, 
-                              mb: 1, 
+                            sx={{
+                              p: 2,
+                              mt: 1,
+                              mb: 1,
                               backgroundColor: 'grey.100',
                               overflowX: 'auto',
                               fontFamily: 'monospace',
                               fontSize: '0.875rem',
                               margin: 0,
                               whiteSpace: 'pre'
-                            }} 
-                            {...props} 
+                            }}
+                            {...props}
                           />
                         ),
-                        code: ({node, className, children, ...props}) => {
+                        code: ({ node, className, children, ...props }) => {
                           const isInline = !className || !className.startsWith('language-');
                           if (isInline) {
                             // Inline code
                             return (
-                              <Typography 
-                                component="code" 
-                                sx={{ 
-                                  backgroundColor: 'grey.200', 
-                                  px: 0.5, 
-                                  py: 0.25, 
+                              <Typography
+                                component="code"
+                                sx={{
+                                  backgroundColor: 'grey.200',
+                                  px: 0.5,
+                                  py: 0.25,
                                   borderRadius: 0.5,
                                   fontFamily: 'monospace',
                                   fontSize: '0.875rem'
-                                }} 
-                                {...props} 
+                                }}
+                                {...props}
                               >
                                 {children}
                               </Typography>
@@ -557,95 +560,97 @@ const RagDemo: React.FC = () => {
                           } else {
                             // Block code - no syntax highlighting to avoid build issues
                             return (
-                              <Paper 
+                              <Paper
                                 component="code"
-                                sx={{ 
-                                  p: 2, 
-                                  mt: 1, 
-                                  mb: 1, 
+                                sx={{
+                                  p: 2,
+                                  mt: 1,
+                                  mb: 1,
                                   backgroundColor: 'grey.100',
                                   overflowX: 'auto',
                                   fontFamily: 'monospace',
                                   fontSize: '0.875rem',
                                   display: 'block',
                                   whiteSpace: 'pre'
-                                }} 
-                                {...props} 
+                                }}
+                                {...props}
                               >
                                 {children}
                               </Paper>
                             );
                           }
                         },
-                        a: ({node, ...props}) => (
-                          <Typography 
-                            component="a" 
-                            sx={{ 
-                              color: 'primary.main', 
+                        a: ({ node, ...props }) => (
+                          <Typography
+                            component="a"
+                            sx={{
+                              color: 'primary.main',
                               textDecoration: 'underline',
                               cursor: 'pointer'
-                            }} 
-                            {...props} 
+                            }}
+                            {...props}
                           />
                         ),
-                        strong: ({node, ...props}) => <Typography component="strong" sx={{ fontWeight: 'bold' }} {...props} />,
-                        em: ({node, ...props}) => <Typography component="em" sx={{ fontStyle: 'italic' }} {...props} />,
+                        strong: ({ node, ...props }) => <Typography component="strong" sx={{ fontWeight: 'bold' }} {...props} />,
+                        em: ({ node, ...props }) => <Typography component="em" sx={{ fontStyle: 'italic' }} {...props} />,
                       }}
                     />
                   </Box>
-                  
+
                   {/* Show sources if this is an AI response with sources */}
-                  {message.type === 'ai' && message.sources && message.sources.length > 0 && (
-                    <Box sx={{ mt: 1, pt: 1, borderTop: '1px solid #e0e0e0' }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <Typography variant="caption" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-                          Sources:
-                        </Typography>
-                        <IconButton 
-                          size="small" 
-                          onClick={() => setShowSources(!showSources)}
-                          sx={{ padding: 0 }}
-                        >
-                          {showSources ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
-                        </IconButton>
+                  {message.type === 'ai' && message.sources && message.sources.length > 0
+                    && message.sources.filter(source => source.url && source.url.trim() !== '').length > 0
+                    && (
+                      <Box sx={{ mt: 1, pt: 1, borderTop: '1px solid #e0e0e0' }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <Typography variant="caption" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                            Sources:
+                          </Typography>
+                          <IconButton
+                            size="small"
+                            onClick={() => setShowSources(!showSources)}
+                            sx={{ padding: 0 }}
+                          >
+                            {showSources ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
+                          </IconButton>
+                        </Box>
+
+                        <Collapse in={showSources}>
+                          <List dense sx={{ mt: 1, pl: 2 }}>
+                            {message.sources
+                              .filter(source => source.url && source.url.trim() !== '') // Only show sources have url
+                              .map((source, index) => (
+                                <ListItem key={index} sx={{ pl: 0, py: 0.5, display: 'flex', alignItems: 'flex-start' }}>
+                                  <ListItemIcon sx={{ minWidth: '24px', color: 'primary.main', marginTop: 0.5 }}>
+                                    <DocumentIcon fontSize="small" />
+                                  </ListItemIcon>
+                                  <ListItemText
+                                    primary={source.title || 'Untitled Document'}
+                                    secondary={(source.content || '').substring(0, 100) + ((source.content || '').length > 100 ? '...' : '')}
+                                    primaryTypographyProps={{ variant: 'caption', fontWeight: 'medium' }}
+                                    secondaryTypographyProps={{ variant: 'caption' }}
+                                  />
+                                  {source.title && (
+                                    <IconButton
+                                      size="small"
+                                      onClick={() => downloadDocument('', source.title)}
+                                      sx={{
+                                        color: 'primary.main',
+                                        padding: '4px',
+                                        marginLeft: 1,
+                                        marginTop: 0.5
+                                      }}
+                                      title={`Download ${source.title}`}
+                                    >
+                                      <DownloadIcon fontSize="small" />
+                                    </IconButton>
+                                  )}
+                                </ListItem>
+                              ))}
+                          </List>
+                        </Collapse>
                       </Box>
-                      
-                      <Collapse in={showSources}>
-                        <List dense sx={{ mt: 1, pl: 2 }}>
-                          {message.sources
-                            .filter(source => source.title || (source.content && source.content.trim() !== '')) // Only show sources with meaningful content
-                            .map((source, index) => (
-                              <ListItem key={index} sx={{ pl: 0, py: 0.5, display: 'flex', alignItems: 'flex-start' }}>
-                                <ListItemIcon sx={{ minWidth: '24px', color: 'primary.main', marginTop: 0.5 }}>
-                                  <DocumentIcon fontSize="small" />
-                                </ListItemIcon>
-                                <ListItemText 
-                                  primary={source.title || 'Untitled Document'} 
-                                  secondary={(source.content || '').substring(0, 100) + ((source.content || '').length > 100 ? '...' : '')}
-                                  primaryTypographyProps={{ variant: 'caption', fontWeight: 'medium' }}
-                                  secondaryTypographyProps={{ variant: 'caption' }}
-                                />
-                                {source.title && (
-                                  <IconButton 
-                                    size="small" 
-                                    onClick={() => downloadDocument('', source.title)}
-                                    sx={{ 
-                                      color: 'primary.main', 
-                                      padding: '4px', 
-                                      marginLeft: 1, 
-                                      marginTop: 0.5 
-                                    }}
-                                    title={`Download ${source.title}`}
-                                  >
-                                    <DownloadIcon fontSize="small" />
-                                  </IconButton>
-                                )}
-                              </ListItem>
-                            ))}
-                        </List>
-                      </Collapse>
-                    </Box>
-                  )}
+                    )}
                 </Paper>
               </Box>
             ))}
@@ -680,11 +685,12 @@ const RagDemo: React.FC = () => {
       </Box>
 
       {/* File Upload Area */}
-      <Box sx={{ 
-        padding: 2, 
+      <Box sx={{
+        padding: 2,
         backgroundColor: 'background.paper',
         borderTop: '1px solid #e0e0e0',
-        flexShrink: 0
+        flexShrink: 0,
+        flex: 0,
       }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
           <input
@@ -695,12 +701,12 @@ const RagDemo: React.FC = () => {
             onChange={handleFileChange}
           />
           <label htmlFor="file-upload">
-            <Button 
-              variant="outlined" 
+            <Button
+              variant="outlined"
               component="span"
               startIcon={<AttachFileIcon />}
               disabled={isUploading}
-              sx={{ 
+              sx={{
                 textTransform: 'none',
                 borderColor: 'primary.main',
                 color: 'primary.main',
@@ -713,12 +719,12 @@ const RagDemo: React.FC = () => {
               Upload Document
             </Button>
           </label>
-          
+
           {file && (
             <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Chip 
-                label={file.name} 
-                size="small" 
+              <Chip
+                label={file.name}
+                size="small"
                 onDelete={() => {
                   setFile(null);
                   setUploadMessage('');
@@ -726,9 +732,9 @@ const RagDemo: React.FC = () => {
                   if (fileInput) fileInput.value = '';
                 }}
               />
-              <Button 
-                variant="contained" 
-                color="primary" 
+              <Button
+                variant="contained"
+                color="primary"
                 onClick={handleFileUpload}
                 disabled={isUploading}
                 size="small"
@@ -738,16 +744,16 @@ const RagDemo: React.FC = () => {
             </Box>
           )}
         </Box>
-        
+
         {uploadMessage && (
-          <Alert 
+          <Alert
             severity={uploadMessage.includes('failed') || uploadMessage.includes('error') ? 'error' : 'info'}
             sx={{ mt: 1 }}
           >
             {uploadMessage}
           </Alert>
         )}
-        
+
         {isUploading && (
           <Box sx={{ width: '100%', mt: 1 }}>
             <LinearProgress variant="determinate" value={uploadProgress} />
@@ -756,10 +762,11 @@ const RagDemo: React.FC = () => {
       </Box>
 
       {/* Input Area - Always stays at the bottom */}
-      <Box sx={{ 
-        padding: 2, 
+      <Box sx={{
+        padding: 2,
         backgroundColor: 'background.paper',
-        flexShrink: 0
+        flexShrink: 0,
+        flex: 0,
       }}>
         <Box sx={{ display: 'flex', gap: 1 }}>
           <TextField
