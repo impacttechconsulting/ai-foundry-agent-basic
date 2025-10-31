@@ -13,8 +13,8 @@ import {
   Dashboard as DashboardIcon,
   AutoFixHigh as AgentIcon,
   Logout as LogoutIcon,
-  Search as SearchIcon,
-  Description as DocumentIcon
+  Search as SearchIcon
+  // Description as DocumentIcon
 } from '@mui/icons-material';
 
 interface NavigationProps {
