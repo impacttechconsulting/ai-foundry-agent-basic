@@ -43,15 +43,24 @@ public class AgentsController : ControllerBase
     }
 
     [HttpGet("models")]
-    public async Task<ActionResult<IAsyncEnumerator<AIProjectDeployment>>> GetModelDeploymentsAsync()
+    public async Task<ActionResult<List<AIProjectDeployment>>> GetModelDeploymentsAsync()
     {
         try
         {
             _logger.LogInformation("Fetching list of model deployments from Azure AI Foundry");
-            var projectClient = new AIProjectClient(new Uri("https://your-ai-foundry-project.eastus.inference.ai.azure.com"), new DefaultAzureCredential());
-            var deployments = projectClient.Deployments.GetDeploymentsAsync();
-            // _logger.LogInformation("Successfully returned {Count} model deployments", modelDeployments.Count);
-            return Ok(deployments.GetAsyncEnumerator());
+            var projectClient = new AIProjectClient(
+                new Uri("https://your-ai-foundry-project.eastus.inference.ai.azure.com"),
+                new DefaultAzureCredential()
+            );
+            var deploymentsResult = projectClient.Deployments.GetDeploymentsAsync(); // No await
+
+            var deployments = new List<AIProjectDeployment>();
+            await foreach (var deployment in deploymentsResult)
+            {
+                deployments.Add(deployment);
+            }
+
+            return Ok(deployments);
         }
         catch (Exception ex)
         {

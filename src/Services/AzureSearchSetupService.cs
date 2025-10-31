@@ -19,7 +19,7 @@ public class AzureSearchSetupService : IAzureSearchSetupService, IHostedService
     private readonly string _indexerName = "blob-document-indexer";
 
     public AzureSearchSetupService(
-        IIndexerService indexerService, 
+        IIndexerService indexerService,
         IOptionsMonitor<AzureStorageOptions> storageOptions,
         IOptionsMonitor<IndexerServiceSearchOptions> searchOptions,
         ILogger<AzureSearchSetupService> logger)
@@ -38,14 +38,14 @@ public class AzureSearchSetupService : IAzureSearchSetupService, IHostedService
 
             // Get storage configuration
             var storageOptions = _storageOptions.CurrentValue;
-            
+
             if (string.IsNullOrEmpty(storageOptions.AccountName))
             {
                 _logger.LogWarning("Azure Storage AccountName is not configured. Skipping data source and indexer setup.");
                 return false;
             }
 
-            var connectionString = storageOptions.ConnectionString;
+            var connectionString = storageOptions.ConnectionString ?? string.Empty;
             var containerName = storageOptions.ContainerName;
             var useManagedIdentity = storageOptions.UseManagedIdentity;
 
@@ -57,7 +57,7 @@ public class AzureSearchSetupService : IAzureSearchSetupService, IHostedService
 
             // Get the search index name from configuration
             var searchIndexName = _searchOptions.CurrentValue.IndexName;
-            
+
             if (string.IsNullOrEmpty(searchIndexName))
             {
                 _logger.LogWarning("Azure AI Search IndexName is not configured. Using default 'ai-foundry-rag-agent-index' index.");
@@ -77,8 +77,8 @@ public class AzureSearchSetupService : IAzureSearchSetupService, IHostedService
             // Create or update the data source connection
             _logger.LogInformation("Creating or updating data source: {DataSourceName}", _dataSourceName);
             var dataSourceCreated = await _indexerService.CreateOrUpdateDataSourceConnectionAsync(
-                _dataSourceName, 
-                connectionString, 
+                _dataSourceName,
+                connectionString,
                 containerName,
                 useManagedIdentity);
 
@@ -91,8 +91,8 @@ public class AzureSearchSetupService : IAzureSearchSetupService, IHostedService
             // Create or update the indexer
             _logger.LogInformation("Creating or updating indexer: {IndexerName}", _indexerName);
             var indexerCreated = await _indexerService.CreateOrUpdateIndexerAsync(
-                _indexerName, 
-                _dataSourceName, 
+                _indexerName,
+                _dataSourceName,
                 searchIndexName);
 
             if (!indexerCreated)

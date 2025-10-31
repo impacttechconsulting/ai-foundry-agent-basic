@@ -27,15 +27,15 @@ public class DocumentProcessingService : IDocumentProcessingService
         try
         {
             var blobClient = blobContainerClient.GetBlobClient(blobName);
-            
+
             // Download the blob content
             var response = await blobClient.DownloadContentAsync();
             var content = response.Value.Content.ToString();
-            
+
             // Extract text based on file extension
             var extension = Path.GetExtension(blobName).ToLowerInvariant();
             string extractedText;
-            
+
             switch (extension)
             {
                 case ".txt":
@@ -56,10 +56,10 @@ public class DocumentProcessingService : IDocumentProcessingService
                     extractedText = content;
                     break;
             }
-            
+
             // Chunk the extracted text
             var chunks = ChunkText(extractedText, maxChunkSize: 1000, overlap: 100);
-            
+
             return chunks;
         }
         catch (Exception ex)
@@ -68,7 +68,7 @@ public class DocumentProcessingService : IDocumentProcessingService
             throw;
         }
     }
-    
+
     private string ExtractTextFromPdf(string content, BlobClient blobClient)
     {
         // For PDF processing, we'd typically use a library like iTextSharp or PDFsharp
@@ -77,22 +77,22 @@ public class DocumentProcessingService : IDocumentProcessingService
         _logger.LogWarning("PDF text extraction requires additional libraries. Returning raw content for now.");
         return content;
     }
-    
+
     private async Task<string> ExtractTextFromDocxAsync(BlobClient blobClient)
     {
         using var memoryStream = new MemoryStream();
         await blobClient.DownloadToAsync(memoryStream);
         memoryStream.Position = 0;
-        
+
         using var docxPackage = WordprocessingDocument.Open(memoryStream, false);
         var text = new StringBuilder();
-        
-        var paragraphs = docxPackage.MainDocumentPart.Document.Elements<Paragraph>();
-        foreach (var paragraph in paragraphs)
+
+        var paragraphs = docxPackage.MainDocumentPart?.Document.Elements<Paragraph>();
+        foreach (var paragraph in paragraphs ?? [])
         {
             text.AppendLine(paragraph.InnerText);
         }
-        
+
         return text.ToString();
     }
 
@@ -100,14 +100,14 @@ public class DocumentProcessingService : IDocumentProcessingService
     {
         if (string.IsNullOrEmpty(content))
         {
-            return new List<string>();
+            return [];
         }
 
         var chunks = new List<string>();
-        var paragraphs = content.Split(new[] { "\n\n", "\r\n\r\n" }, StringSplitOptions.RemoveEmptyEntries);
-        
+        var paragraphs = content.Split(["\n\n", "\r\n\r\n"], StringSplitOptions.RemoveEmptyEntries);
+
         var currentChunk = new StringBuilder();
-        
+
         foreach (var paragraph in paragraphs)
         {
             // If adding the next paragraph would exceed the max chunk size
@@ -115,7 +115,7 @@ public class DocumentProcessingService : IDocumentProcessingService
             {
                 // Add the current chunk to the list
                 chunks.Add(currentChunk.ToString().Trim());
-                
+
                 // Start a new chunk with overlap from the previous chunk
                 if (overlap > 0)
                 {
@@ -128,15 +128,15 @@ public class DocumentProcessingService : IDocumentProcessingService
                     currentChunk = new StringBuilder();
                 }
             }
-            
+
             currentChunk.AppendLine(paragraph);
-            
+
             // If the current chunk is still too large, split it into sentences
             if (currentChunk.Length > maxChunkSize)
             {
                 var sentences = currentChunk.ToString().Split(new[] { '.', '!', '?' }, StringSplitOptions.RemoveEmptyEntries);
                 currentChunk = new StringBuilder();
-                
+
                 foreach (var sentence in sentences)
                 {
                     if (currentChunk.Length + sentence.Length + 1 > maxChunkSize && currentChunk.Length > 0)
@@ -144,10 +144,10 @@ public class DocumentProcessingService : IDocumentProcessingService
                         chunks.Add(currentChunk.ToString().Trim());
                         currentChunk = new StringBuilder();
                     }
-                    
+
                     currentChunk.Append(sentence.Trim() + ". ");
                 }
-                
+
                 // Add any remaining content in currentChunk
                 if (currentChunk.Length > 0 && currentChunk.Length < maxChunkSize)
                 {
@@ -156,13 +156,13 @@ public class DocumentProcessingService : IDocumentProcessingService
                 }
             }
         }
-        
+
         // Add the final chunk if it has content
         if (currentChunk.Length > 0)
         {
             chunks.Add(currentChunk.ToString().Trim());
         }
-        
+
         // Filter out any empty or whitespace-only chunks
         return chunks.Where(chunk => !string.IsNullOrWhiteSpace(chunk)).ToList();
     }
